@@ -7,9 +7,30 @@ Lambda function code to index files in S3 bucket by creating filehandles on Syna
 
 ### Getting started
 - Configure S3 bucket and Synapse project as outlined in [Synapse documentation](https://docs.synapse.org/articles/custom_storage_location.html#toc-custom-storage-locations)
-- Verify your AWS IAM user policy includes Lambda, S3, and CloudWatch Logs access
 
-## Create a deployment package
+---
+
+## Deploy
+### via AWS Serverless CLI
+(See instructions for AWS Serverless setup at end of this README)
+
+1. Modify serverless.yml to define environment variables and S3 trigger
+
+From project directory: 
+
+2. Install Python requirements plugin
+``` 
+sls plugin install -n serverless-python-requirements
+```
+3. Deploy function
+``` 
+sls deploy
+```
+
+
+### via AWS Console
+#### Create a deployment package
+- Verify your AWS IAM user policy includes Lambda, S3, and CloudWatch Logs access
 1. Copy `lambda_function.py` to \<your-project\>
 2. Create a virtual environment
 ```
@@ -33,8 +54,7 @@ source venv/bin/activate
 (venv) python-s3$ deactivate
 ```
 
-## Steps to Set up Lambda Function
-### AWS Console
+#### Deploy Lambda Function
 1. Create an execution role to allow Lambda functions permission to access AWS services
     - From the AWS Management Console, select the IAM resource
     - Under the ‘Roles’ page, select **Create Role**
@@ -61,10 +81,29 @@ source venv/bin/activate
     - Under **Code entry type**, select 'Upload a .zip file'
     - Click 'Upload' to upload the `synapse_function.zip` deployment package
 
-### AWS CLI
-(To-do)
+---
 
 ### To Test: 
 1. Place a file in one of the folders specified in `foldersToSync` environment variable
 2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully 
 3. Check Synapse project to see if filehandle was created
+
+---
+
+### Installing Serverless and Configuring AWS Profile
+1. Install [Serverless framework](https://www.serverless.com/framework/docs/getting-started/) 
+```
+npm install -g serverless 
+```
+2. Enable permissions
+- On the AWS console under the IAM resource, click **Policies** --> **Create policy**
+    - Select the JSON tab and add `IAMPolicy.json` file
+    - Give policy a descriptive name i.e. 'serverless-agent'
+- Under the IAM resource, click **Users**
+    - Create a new user, or apply 'serverless-agent' policy to existing user, ensuring Programmatic access is enabled
+    - Save user credentials (Access Key ID and Secret Access Key) 
+        
+3. Configure AWS Profile with credentials
+```
+serverless config credentials --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+```
