@@ -18,11 +18,7 @@ Lambda function code to index files in S3 bucket by creating filehandles on Syna
 
 From project directory: 
 
-2. Install Python requirements plugin
-``` 
-sls plugin install -n serverless-python-requirements
-```
-3. Deploy function
+2. Deploy function
 ``` 
 sls deploy
 ```
