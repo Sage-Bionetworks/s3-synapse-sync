@@ -9,7 +9,6 @@ import synapseclient
 import tempfile
 import uuid
 
-s3 = boto3.client('s3')
 
 synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
 syn = synapseclient.Synapse()
@@ -38,9 +37,6 @@ def lambda_handler(event, context):
             delete_file(filename, project_id, key)
 
 def create_filehandle(event, filename, bucket, key, project_id):
-    waiter = s3.get_waiter('object_exists')
-    waiter.wait(Bucket=bucket, Key=key)
-    
     parent = get_parent_folder(project_id, key)
     eTag = event['Records'][0]['s3']['object']['eTag']
     file_id = syn.findEntityId(filename, parent)
