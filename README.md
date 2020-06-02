@@ -14,11 +14,16 @@ Lambda function code to index files in S3 bucket by creating filehandles on Syna
 ### via AWS Serverless CLI
 (See instructions for AWS Serverless setup at end of this README)
 
-1. Modify serverless.yml to define environment variables and S3 trigger
+1. Clone this repository, and modify serverless.yml to define environment variables and S3 trigger bucket
 
-From project directory: 
+    The function source code requires four input variables: 
+    - `username`: Synapse account username 
+    - `apiKey`: Synapse API Key. Can be found under Settings on Synapse
+    - `synapseProjectId`: Synapse ID of project, a unique identifier with the format `syn12345678`
+    - `foldersToSync`: Comma separated list of folders in bucket to be synchronized to Synapse 
 
-2. Install Python requirements plugin
+
+2. Change directory to within the repository, and install the Python requirements plugin
 ``` 
 serverless plugin install -n serverless-python-requirements
 ```
