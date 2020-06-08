@@ -36,7 +36,7 @@ serverless deploy
 ### via AWS Console
 #### Create a deployment package
 - Verify your AWS IAM user policy includes Lambda, S3, and CloudWatch Logs access
-1. Copy `lambda_function.py` to \<your-project\>
+1. Save `lambda_function.py` locally to \<your-project\>
 2. Create a virtual environment
 ```
 cd <your-project>
@@ -49,14 +49,14 @@ source venv/bin/activate
 ```
 4. Create a deployment package with the contents of the installed libraries.
 ```
-(venv) python-s3$ cd $VIRTUAL_ENV/lib/<python3.x>/site-packages
-(venv) python-s3/v-env/lib/<python3.x>/site-packages$ zip -r9 ${OLDPWD}/synapse_function.zip .
+(venv) cd $VIRTUAL_ENV/lib/<python3.x>/site-packages
+(venv) zip -r9 ${OLDPWD}/synapse_function.zip .
 ```
 5. Add the handler code to the deployment package and deactivate the virtual environment.
 ```
-(venv) python-s3/v-env/lib/<python3.x>/site-packages$  cd ${OLDPWD}
-(venv) python-s3$ zip -g synapse_function.zip lambda_function.py
-(venv) python-s3$ deactivate
+(venv) cd ${OLDPWD}
+(venv) zip -g synapse_function.zip lambda_function.py
+(venv) deactivate
 ```
 
 #### Deploy Lambda Function
@@ -71,20 +71,22 @@ source venv/bin/activate
     - Set **Runtime** to corresponding Python version
     - Under **Execution role**, choose ‘Use an existing role’ and select the newly created `lambda-s3-role` 
 3. Select your function from the Lambda console and click **Add trigger** in the Designer box
-    - Create 'Object Create' trigger
+    - To create 'Object Create' trigger:
+        - Select `S3` from the dropdown menu
         - Select your S3 bucket
         - Under **Event type** select `All Object Create Events` 
-    - Create 'Object Delete' trigger
+    - To create 'Object Delete' trigger:
+        - Select `S3` from the dropdown menu
         - Select your S3 bucket 
         - Under **Event type** select `All Object Delete Events` 
-4. Set up environment variables. The function source code requires four input variables: 
+4. In the Function code box:
+    - Under **Code entry type**, select 'Upload a .zip file'
+    - Click 'Upload' to upload the `synapse_function.zip` deployment package
+5. In the Environment variables box, define environment variables. The function source code requires four input variables: 
     - `username`: Synapse account username 
     - `apiKey`: Synapse API Key. Can be found under Settings on Synapse
     - `synapseProjectId`: Synapse ID of project, a unique identifier with the format `syn12345678`
     - `foldersToSync`: Comma separated list of folders in bucket to be synchronized to Synapse
-5. In the Function code box:
-    - Under **Code entry type**, select 'Upload a .zip file'
-    - Click 'Upload' to upload the `synapse_function.zip` deployment package
 
 ---
 
