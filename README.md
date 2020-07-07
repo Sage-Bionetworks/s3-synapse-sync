@@ -89,6 +89,14 @@ source venv/bin/activate
     - `foldersToSync`: Comma separated list of folders in bucket to be synchronized to Synapse
 
 ---
+### Sync Existing Files
+To sync files already in a bucket, complete the steup and deployment steps above, then run the following command with your bucket and folder name. This will effectively "touch" all files within that folder by adding a metadata attribute, and trigger the Lambda function to sync the files to Synapse.
+
+```
+aws s3 cp --metadata {\"toSynapse\":\"true\"} s3://<your-bucket>/<folder-to-sync>/ s3://<your-bucket>/<folder-to-sync>/ --recursive
+```
+
+---
 
 ### To Test: 
 1. Place a file in one of the folders specified in `foldersToSync` environment variable
