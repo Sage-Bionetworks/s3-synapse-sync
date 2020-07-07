@@ -1,8 +1,7 @@
 #
 # Config file for Lambda function
 # Define environment variables as indicated
-# Set event trigger to your S3 bucket
-# 
+# Set event triggers to your S3 bucket 
 
 service: synapse-serverless
 
