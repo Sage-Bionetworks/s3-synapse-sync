@@ -1,2 +1,0 @@
-# install packages
-synapseclient==2.0.0
