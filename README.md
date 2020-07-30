@@ -193,9 +193,9 @@ source venv/bin/activate
     - Click 'Upload' to upload the `synapse_function.zip` deployment package
 2. From **Account A**, add parameters to SSM Parameter Store \
     From the AWS Management Console, select **Systems Manager** > **Parameter Store** > **Create Parameter** \
-    Create four **SecureString** parameters ensuring each parameter name follows the hierarchy specified below:
+    Create four **SecureString** parameters ensuring each parameter name aligns with the format specified below:
 
-| Name  | Value Description | Type |
+| Parameter Name  | Value Description | Type |
 | ------------- | ------------- | ------------- |
 | `/HTAN/SynapseSync/<bucket-name>/username`  | Synapse account username  | SecureString |
 | `/HTAN/SynapseSync/<bucket-name>/apiKey`  | Synapse API Key | SecureString |
