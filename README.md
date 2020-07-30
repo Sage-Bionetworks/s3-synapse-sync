@@ -1,41 +1,169 @@
-## s3-synapse-sync
+# s3-synapse-sync
 
-Lambda function code to index files in S3 bucket by creating filehandles on Synapse, triggered by file changes to S3.
+Lambda function code to index files in S3 buckets by creating filehandles on Synapse, triggered by file changes to S3.
 
-### Requirements
+## Requirements
 - Python 3.6+
 
-### Getting started
-- Configure S3 bucket and Synapse project as outlined in [Synapse documentation](https://docs.synapse.org/articles/custom_storage_location.html#toc-custom-storage-locations)
+## Getting started
+
+Confirm [center onboarding](https://docs.google.com/document/d/1cCRkfK6or6lwMNc96f5LTp9rK8aHEDqhyP0ISgSn9sI/edit) steps are complete, and a Synapse project has been created to which the bucket will be synced.
+
+### Configure lambda and bucket policies
+
+Note: The steps below outline the setup for a case where the Lambda function is deployed in **Account A** and **Account B** contains the bucket. Steps 5a and 6 may be omitted when the bucket and lambda are in the same account.
+
+1. From **Account A**, create two IAM policies: `S3SynapseLambdaExecute` and `SSMParameterStore`
+    - From the AWS Management Console, select **IAM** > **Policies** > **Create Policy**
+
+`S3SynapseLambdaExecute` policy json: 
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:*"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:PutObjectAcl"
+            ],
+            "Resource": "arn:aws:s3:::*"
+        }
+    ]
+}
+```
+`SSMParameterStore` policy json: 
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:DescribeParameters"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter"
+            ],
+            "Resource": "arn:aws:ssm:us-east-1:<AccountA-AWS-id>:parameter/*"
+        }
+    ]
+}
+```
+2. From **Account A**, create an execution role to allow the Lambda function permission to access AWS services
+    - From the AWS Management Console, select the **IAM** > **Roles** > **Create Role**
+    - Create a role with the following properties.
+        - **Trusted entity** – AWS Lambda
+        - **Permissions** – `S3SynapseLambdaExecute` & `SSMParameterStore`
+        - **Role name** – `htan-lambda-s3-role`
+        
+3. From **Account A**, create the Lambda Function
+    - From the AWS Management Console, select **Lambda** > **Create function**
+    - Set **Runtime** to corresponding Python version
+    - Under **Execution role**, choose ‘Use an existing role’ and select the newly created `htan-lambda-s3-role` 
+    - Note: Lambda and bucket must be in the same region
+    
+4. From **Account B**, create bucket
+    - Note: Lambda and bucket must be in the same region
+5. From **Account B**, configure your bucket to be the external storage location of your Synapse project, as outlined in [Synapse documentation](https://docs.synapse.org/articles/custom_storage_location.html#toc-custom-storage-locations)
+    
+    5a. Add additional statements to the read-write bucket policy, as well as ARNs of external collaborators and any additional users to allow them CLI access to the bucket. Example policy below:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::325565585839:root",
+                    "<external-collaborator-arn>",
+                    "<additional-user-arn>"
+                ]
+            },
+            "Action": [
+                "s3:ListBucket*",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": "arn:aws:s3:::<bucket-name>"
+        },
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::325565585839:root",
+                    "<external-collaborator-arn>",
+                    "<additional-user-arn>"
+                ]
+            },
+            "Action": [
+                "s3:*Object*",
+                "s3:*MultipartUpload*"
+            ],
+            "Resource": "arn:aws:s3:::<bucket-name>/*"
+        },
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::<accountA-accountID>:role/htan-lambda-s3-role",
+                    "<external-collaborator-arn>",
+                    "<additional-user-arn>"
+                ]
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:PutObjectAcl"
+            ],
+            "Resource": "arn:aws:s3:::<bucket-name>/*"
+        },
+        {
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::<bucket-name>/*",
+            "Condition": {
+                "StringNotEqualsIgnoreCase": {
+                    "s3:x-amz-grant-full-control": "id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed"
+                },
+                "StringNotEquals": {
+                    "s3:x-amz-grant-full-control": "id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440, id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed"
+                }
+            }
+        }
+    ]
+}
+```
+6. Use the AWS CLI to grant permission for the **Account B** bucket to invoke the Lambda function in **Account A**: 
+```
+aws lambda add-permission --function-name <accountA-functionName> --action lambda:InvokeFunction --statement-id <value> \
+--principal s3.amazonaws.com --source-arn arn:aws:s3:::<accountB-bucketName> --source-account <accountB-accountID>
+```
+7. From the bucket console in **Account B**, add event notifications to trigger the Lambda function 
+    - From the bucket console, select **Properties** > **Events** > **Add Notification**
+    - Select `All Object Create Events` and `All Object Delete Events`
+    - Under **Send to**, select `Lambda function`
+    - Enter the lambda function ARN, and save the notification
 
 ---
 
-## Deploy
-### via AWS Serverless CLI
-(See instructions for AWS Serverless setup at end of this README)
-
-1. Clone this repository, and modify serverless.yml to define environment variables and S3 trigger bucket
-
-    The function source code requires four input variables: 
-    - `username`: Synapse account username 
-    - `apiKey`: Synapse API Key. Can be found under Settings on Synapse
-    - `synapseProjectId`: Synapse ID of project, a unique identifier with the format `syn12345678`
-    - `foldersToSync`: Comma separated list of folders in bucket to be synchronized to Synapse 
-
-
-2. Change directory to within the repository, and install the Python requirements plugin
-``` 
-serverless plugin install -n serverless-python-requirements
-```
-3. Deploy function
-``` 
-serverless deploy
-```
-
-
-### via AWS Console
+## Deploy Lambda function via AWS Console
 #### Create a deployment package
-- Verify your AWS IAM user policy includes Lambda, S3, and CloudWatch Logs access
 1. Save `lambda_function.py` locally to \<your-project\>
 2. Create a virtual environment
 ```
@@ -59,66 +187,47 @@ source venv/bin/activate
 (venv) deactivate
 ```
 
-#### Deploy Lambda Function
-1. Create an execution role to allow Lambda functions permission to access AWS services
-    - From the AWS Management Console, select the IAM resource
-    - Under the ‘Roles’ page, select **Create Role**
-    - Create a role with the following properties.
-        - **Trusted entity** – AWS Lambda.
-        - **Permissions** – AWSLambdaExecute.
-        - **Role name** – `lambda-s3-role`
-2. From the AWS Management Console, select the **Lambda** resource and **Create function**
-    - Set **Runtime** to corresponding Python version
-    - Under **Execution role**, choose ‘Use an existing role’ and select the newly created `lambda-s3-role` 
-3. Select your function from the Lambda console and click **Add trigger** in the Designer box
-    - To create 'Object Create' trigger:
-        - Select `S3` from the dropdown menu
-        - Select your S3 bucket
-        - Under **Event type** select `All Object Create Events` 
-    - To create 'Object Delete' trigger:
-        - Select `S3` from the dropdown menu
-        - Select your S3 bucket 
-        - Under **Event type** select `All Object Delete Events` 
-4. In the Function code box:
-    - Under **Code entry type**, select 'Upload a .zip file'
+#### Deploy 
+1. From **Account A**, navigate to your Lambda function
+    - In the Function code box under **Code entry type**, select 'Upload a .zip file'
     - Click 'Upload' to upload the `synapse_function.zip` deployment package
-5. In the Environment variables box, define environment variables. The function source code requires four input variables: 
-    - `username`: Synapse account username 
-    - `apiKey`: Synapse API Key. Can be found under Settings on Synapse
-    - `synapseProjectId`: Synapse ID of project, a unique identifier with the format `syn12345678`
-    - `foldersToSync`: Comma separated list of folders in bucket to be synchronized to Synapse
+2. From **Account A**, add parameters to SSM Parameter Store \
+    From the AWS Management Console, select **Systems Manager** > **Parameter Store** > **Create Parameter** \
+    Create four **SecureString** parameters ensuring each parameter name follows the hierarchy specified below:
+
+| Name  | Value Description | Type |
+| ------------- | ------------- | ------------- |
+| `/HTAN/SynapseSync/<bucket-name>/username`  | Synapse account username  | SecureString |
+| `/HTAN/SynapseSync/<bucket-name>/apiKey`  | Synapse API Key | SecureString |
+| `/HTAN/SynapseSync/<bucket-name>/synapseProjectId` | Synapse ID of project; an identifier with the format `syn12345678` | SecureString |
+| `/HTAN/SynapseSync/<bucket-name>/foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse | SecureString |
+
+
+---
+
+### To Test: 
+1. Place a file in one of the folders specified in the `foldersToSync` parameter
+    - Include the `--grants` flag upon upload to grant full control of the object to both
+        1. the Synapse account
+            - Synapse canonical ID: `d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440`
+        2. the bucket owner account
+            - i.e. Sage Sandbox (canonical ID: `9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed`)
+   
+Example `cp` and `put-object` commands:
+```
+aws s3 cp test.txt s3://MyBucket/test.txt --grants full=id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed
+```
+```
+aws s3api put-object --bucket MyBucket --key TestFolder/test.txt --body test.txt --grant-full-control id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed
+```
+    
+2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully 
+3. Check Synapse project to see if filehandle was created
 
 ---
 ### Sync Existing Files
 To sync files already in a bucket, complete the steup and deployment steps above, then run the following command with your bucket and folder name. This will effectively "touch" all files within that folder by adding a metadata attribute, and trigger the Lambda function to sync the files to Synapse.
 
 ```
-aws s3 cp --metadata {\"toSynapse\":\"true\"} s3://<your-bucket>/<folder-to-sync>/ s3://<your-bucket>/<folder-to-sync>/ --recursive
-```
-
----
-
-### To Test: 
-1. Place a file in one of the folders specified in `foldersToSync` environment variable
-2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully 
-3. Check Synapse project to see if filehandle was created
-
----
-
-### Installing Serverless and Configuring AWS Profile
-1. Install [Serverless framework](https://www.serverless.com/framework/docs/getting-started/) 
-```
-npm install -g serverless 
-```
-2. Enable permissions
-- On the AWS console under the IAM resource, click **Policies** --> **Create policy**
-    - Select the JSON tab and add `IAMPolicy.json` file
-    - Give policy a descriptive name i.e. 'serverless-agent'
-- Under the IAM resource, click **Users**
-    - Create a new user, or apply 'serverless-agent' policy to existing user, ensuring Programmatic access is enabled
-    - Save user credentials (Access Key ID and Secret Access Key) 
-        
-3. Configure AWS Profile with credentials
-```
-serverless config credentials --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+aws s3 cp --metadata {\"toSynapse\":\"true\"} s3://<MyBucket>/<folder-to-sync>/ s3://<MyBucket>/<folder-to-sync>/ --recursive
 ```
