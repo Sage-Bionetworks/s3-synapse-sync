@@ -18,8 +18,8 @@ def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = unquote_plus(event['Records'][0]['s3']['object']['key'])
     filename = os.path.basename(key)
-    ssm_user = '/HTAN/SynapseSync/'+bucket+'/username'
-    ssm_api = '/HTAN/SynapseSync/'+bucket+'/apiKey'
+    ssm_user = '/HTAN/SynapseSync/username'
+    ssm_api = '/HTAN/SynapseSync/apiKey'
     ssm_project = '/HTAN/SynapseSync/'+bucket+'/synapseProjectId'
     ssm_folders = '/HTAN/SynapseSync/'+bucket+'/foldersToSync'
 
