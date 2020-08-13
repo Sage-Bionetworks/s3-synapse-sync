@@ -160,6 +160,26 @@ aws lambda add-permission --function-name <accountA-functionName> --action lambd
     - Under **Send to**, select `Lambda function`
     - Enter the lambda function ARN, and save the notification
 
+CLI:  
+```
+aws s3api put-bucket-notification-configuration --bucket <bucket> --notification-configuration file://s3lambda_notif.json
+```
+s3lambda_notif.json:
+```
+{
+  "LambdaFunctionConfigurations": [
+    {
+    	"LambdaFunctionArn": "arn:aws:lambda:<region>:<AWS-account-ID>:function:<Lambda-name>",
+    	"Events": [
+    		"s3:ObjectCreated:*",
+    		"s3:ObjectRemoved:*"
+      ]
+    }
+  ]
+}
+```
+
+
 ---
 
 ## Deploy Lambda function via AWS Console
