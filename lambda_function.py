@@ -20,13 +20,13 @@ def lambda_handler(event, context):
     filename = os.path.basename(key)
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
-    ssm_project = '/HTAN/SynapseSync/'+bucket+'/synapseProjectId'
-    ssm_folders = '/HTAN/SynapseSync/'+bucket+'/foldersToSync'
+    ev_project = bucket+'_synapseProjectId'
+    ev_folders = bucket+'_foldersToSync'
 
     username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
     apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
-    project_id = ssm.get_parameter(Name=ssm_project, WithDecryption=True)['Parameter']['Value']
-    inclFolders = ssm.get_parameter(Name=ssm_folders, WithDecryption=True)['Parameter']['Value']
+    project_id = os.environ.get(ev_project, 'synapseProjectId variable is not set.')
+    inclFolders = os.environ.get(ev_folders, 'foldersToSync environment variable is not set.')
     
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
     syn = synapseclient.Synapse()
