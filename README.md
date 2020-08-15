@@ -211,22 +211,29 @@ source venv/bin/activate
 1. From **Account A**, navigate to your Lambda function
     - In the Function code box under **Code entry type**, select 'Upload a .zip file'
     - Click 'Upload' to upload the `synapse_function.zip` deployment package
-2. From **Account A**, add parameters to SSM Parameter Store \
-    From the AWS Management Console, select **Systems Manager** > **Parameter Store** > **Create Parameter** \
+2. Initial (one time) setup: \
+    From **Account A**, add parameters to SSM Parameter Store \
     Create **SecureString** parameters ensuring each parameter name aligns with the format specified below:
 
-Initial (one time) setup:
 | Parameter Name  | Value Description | Type |
 | ------------- | ------------- | ------------- |
 | `/HTAN/SynapseSync/username`  | Synapse service account username  | SecureString |
 | `/HTAN/SynapseSync/apiKey`  | Synapse API Key | SecureString |
 
-Add bucket-specific parameters for each subsequent bucket:
-| Parameter Name  | Value Description | Type |
-| ------------- | ------------- | ------------- |
-| `/HTAN/SynapseSync/<bucket-name>/synapseProjectId` | Synapse ID of project; an identifier with the format `syn12345678` | SecureString |
-| `/HTAN/SynapseSync/<bucket-name>/foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse | SecureString |
+```
+aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --type SecureString
+```
 
+3. From **Account A**, add bucket-specific environment variables for each subsequent bucket:
+
+| Environment Variable Name  | Value Description |
+| ------------- | ------------- |
+| `<bucket_name>_synapseProjectId` | Synapse ID of project; an identifier with the format `syn12345678` | 
+| `<bucket_name>_foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse | 
+
+```
+aws lambda update-function-configuration --function-name <value> --environment Variables="{<bucket_name>_synapseProjectId=<value>,<bucket_name>_foldersToSync=<value>}"
+```
 
 ---
 
