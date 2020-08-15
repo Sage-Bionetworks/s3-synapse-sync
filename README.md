@@ -76,8 +76,11 @@ Note: The steps below outline the setup for a case where the Lambda function is 
     - Under **Execution role**, choose ‘Use an existing role’ and select the newly created `htan-lambda-s3-role` 
     - Note: Lambda and bucket must be in the same region
     
-4. From **Account B**, create bucket
+4. From **Account B**, create a bucket
+
+    - *Bucket name must start with a letter and can only contain letters, numbers, and underscores*
     - Note: Lambda and bucket must be in the same region
+    
 5. From **Account B**, configure your bucket to be the external storage location of your Synapse project, as outlined in [Synapse documentation](https://docs.synapse.org/articles/custom_storage_location.html#toc-custom-storage-locations)
     
     5a. Add additional statements to the read-write bucket policy, as well as ARNs of external collaborators and any additional users to allow them CLI access to the bucket. Example policy below:
