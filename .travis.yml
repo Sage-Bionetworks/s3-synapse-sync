@@ -1,0 +1,32 @@
+language: python
+python: 3.6
+cache: pip
+env:
+  - REPO_NAME="${PWD##*/}"
+install:
+  - pip install pipenv
+  - pipenv install --dev
+  - wget https://github.com/Sage-Bionetworks/infra-utils/archive/master.zip -O /tmp/infra-utils.zip
+  - unzip -j -n /tmp/infra-utils.zip -x "infra-utils-master/.gitignore" "infra-utils-master/LICENSE" "infra-utils-master/*.md" "infra-utils-master/aws/*"
+  - ./setup_aws_cli.sh || travis_terminate 1
+  - export SAM_CLI_TELEMETRY=0
+stages:
+  - name: validate
+  - name: deploy
+    if: (tag =~ ^v) OR (branch = master AND type = push)
+jobs:
+  fast_finish: true
+  include:
+    - stage: validate
+      script:
+        - pre-commit run --all-files
+        - sam build
+#        - python -m pytest tests/ -v
+    - stage: deploy
+      script:
+        - sam build
+        - |
+          sam package --template-file .aws-sam/build/template.yaml \
+            --s3-bucket essentials-awss3lambdaartifactsbucket-x29ftznj6pqw \
+            --output-template-file .aws-sam/build/$REPO_NAME.yaml
+        - aws s3 cp .aws-sam/build/$REPO_NAME.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/$REPO_NAME/$TRAVIS_BRANCH/

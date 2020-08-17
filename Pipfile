@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "~=2.5.3"
+pytest = "~=6.0.1"
+pytest-mock = "~=3.2.0"
+pre-commit = "~=2.6.0"
+responses = "~=0.10.15"
+aws-sam-cli = "<2,>=1.1"
+
+[packages]
+synapseclient = "<3,>=2.1"
+
+[requires]
+python_version = "3.6"
