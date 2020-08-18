@@ -41,7 +41,6 @@ Resources:
             - ssm:GetParameter
           Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/HTAN/SynapseSync/*"
 
-
   Function:
     Type: AWS::Serverless::Function
     Properties:
