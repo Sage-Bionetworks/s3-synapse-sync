@@ -41,6 +41,7 @@ Resources:
             - ssm:GetParameter
           Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/HTAN/SynapseSync/*"
 
+
   Function:
     Type: AWS::Serverless::Function
     Properties:
@@ -65,11 +66,13 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - !Ref SSMParameterStore
         - !Ref S3SynapseLambdaExecute
+        - !ImportValue
+          'Fn::Sub': '${AWS::Region}-htan-synapse-sync-kms-key-KmsDecryptPolicyArn'
 
 Outputs:
   FunctionArn:
     Description: "Lambda Function ARN"
     Value: !GetAtt Function.Arn
   FunctionRoleArn:
-    Description: "Lmbda function role ARN "
+    Description: "Lambda function role ARN"
     Value: !GetAtt FunctionRole.Arn
