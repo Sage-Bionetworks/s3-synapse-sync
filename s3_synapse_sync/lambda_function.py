@@ -4,6 +4,7 @@ import sys
 
 from urllib.parse import unquote_plus
 import boto3
+import hashlib
 import mimetypes
 import synapseclient
 import tempfile
@@ -11,6 +12,7 @@ import uuid
 
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
+MD5_BLOCK_SIZE = 50 * 1024 ** 2
 
 def lambda_handler(event, context):
     print(event)
@@ -41,15 +43,14 @@ def lambda_handler(event, context):
 def create_filehandle(syn, event, filename, bucket, key, project_id):
     print("filename: "+str(filename))
     parent = get_parent_folder(syn, project_id, key)
-    eTag = event['Records'][0]['s3']['object']['eTag']
-    sep = '-'
-    contentmd5 = eTag.split(sep,1)[0]
+    s3_object = s3.get_object(Bucket=bucket, Key=key)
+    md5 = md5sum(s3_object["Body"])
     file_id = syn.findEntityId(filename, parent)
 
     if file_id != None:
         targetMD5 = syn.get(file_id, downloadFile=False)['md5'];
 
-    if file_id == None or contentmd5 != targetMD5:
+    if file_id == None or md5 != targetMD5:
         size = event['Records'][0]['s3']['object']['size']
         contentType = mimetypes.guess_type(filename, strict=False)[0]
         storage_id = syn.restGET("/projectSettings/"+project_id+"/type/upload")['locations'][0]
@@ -58,7 +59,7 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
                             'fileName'    : filename,
                             'contentSize' : size,
                             'contentType' : contentType,
-                            'contentMd5'  : contentmd5,
+                            'contentMd5'  : md5,
                             'bucketName'  : bucket,
                             'key'         : key,
                             'storageLocationId': storage_id}
@@ -83,3 +84,28 @@ def delete_file(syn, filename, project_id, key):
     parent_id = get_parent_folder(syn, project_id, key)
     file_id = syn.findEntityId(filename, parent_id)
     syn.delete(file_id)
+
+# Modified from Phil's code
+def md5sum(file_obj=None, blocksize=None):
+    """
+    Compute md5sum of a file stream by reading it in blocks.
+    :param file_obj: Stream to read.
+    :param blocksize: Block size for each chunk read.
+    :return: md5 sum
+    """
+    blocksize = blocksize or MD5_BLOCK_SIZE
+    if file_obj is not None:
+        hash = _block_hash(
+            file_obj=file_obj,
+            blocksize=blocksize)
+    else:
+        raise TypeError("Either filename or file_obj must be set.")
+    hash = hash.hexdigest().encode("ascii")
+    return hash.decode("utf-8")
+
+def _block_hash(file_obj, blocksize, hash=None):
+    if hash is None:
+        hash = hashlib.md5()
+    for block in iter(lambda: file_obj.read(blocksize), b""):
+        hash.update(block)
+    return hash
