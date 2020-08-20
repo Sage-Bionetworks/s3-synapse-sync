@@ -3,10 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   S3 Synapse sync lambda
 
-Globals:
-  Function:
-    Timeout: 3
-
 Resources:
   S3SynapseLambdaExecute:
     Type: AWS::IAM::ManagedPolicy
@@ -48,6 +44,8 @@ Resources:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
       Role: !GetAtt FunctionRole.Arn
+      Timeout: 900
+      MemorySize: 320
 
   FunctionRole:
     Type: AWS::IAM::Role
