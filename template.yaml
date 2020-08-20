@@ -5,7 +5,8 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 900
+    MemorySize: 320
 
 Resources:
   S3SynapseLambdaExecute:
