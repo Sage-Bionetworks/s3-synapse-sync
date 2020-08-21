@@ -3,9 +3,12 @@ import os
 import sys
 
 from urllib.parse import unquote_plus
+import base64
 import boto3
 import hashlib
 import mimetypes
+import re
+import signal
 import synapseclient
 import tempfile
 import uuid
@@ -15,15 +18,18 @@ ssm = boto3.client('ssm')
 MD5_BLOCK_SIZE = 50 * 1024 ** 2
 
 def lambda_handler(event, context):
+    signal.alarm(int(context.get_remaining_time_in_millis() / 1000) - 1)
     print(event)
     eventname = event['Records'][0]['eventName']
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = unquote_plus(event['Records'][0]['s3']['object']['key'])
     filename = os.path.basename(key)
+
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
-    ev_project = bucket+'_synapseProjectId'
-    ev_folders = bucket+'_foldersToSync'
+    clean_bucket_name = re.sub('[^0-9a-zA-Z]+', '_', bucket)
+    ev_project = 'p_'+clean_bucket_name+'_synapseProjectId'
+    ev_folders = 'p_'+clean_bucket_name+'_foldersToSync'
 
     username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
     apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
@@ -43,8 +49,8 @@ def lambda_handler(event, context):
 def create_filehandle(syn, event, filename, bucket, key, project_id):
     print("filename: "+str(filename))
     parent = get_parent_folder(syn, project_id, key)
-    s3_object = s3.get_object(Bucket=bucket, Key=key)
-    md5 = md5sum(s3_object["Body"])
+    header = s3.head_object(Bucket=bucket, Key=key)
+    md5 = get_md5(event, header, bucket, key)
     file_id = syn.findEntityId(filename, parent)
 
     if file_id != None:
@@ -85,6 +91,20 @@ def delete_file(syn, filename, project_id, key):
     file_id = syn.findEntityId(filename, parent_id)
     syn.delete(file_id)
 
+def get_md5(event, header, bucket, key):
+    """
+    Check if eTag is equivalent to md5 or md5 provided by user during upload. If not, compute md5.
+    """
+    eTag = event['Records'][0]['s3']['object']['eTag']
+    if '-' not in eTag:
+        md5 = eTag
+    elif "content-md5" in header['Metadata']:
+        md5 = base64.b64decode(header['Metadata']['content-md5']).hex()
+    else:
+        s3_object = s3.get_object(Bucket=bucket, Key=key)
+        md5 = md5sum(s3_object["Body"])
+    return md5
+
 # Modified from Phil's code
 def md5sum(file_obj=None, blocksize=None):
     """
@@ -109,3 +129,9 @@ def _block_hash(file_obj, blocksize, hash=None):
     for block in iter(lambda: file_obj.read(blocksize), b""):
         hash.update(block)
     return hash
+
+def timeout_handler(_signal, _frame):
+    '''Handle SIGALRM'''
+    raise Exception('Time exceeded')
+
+signal.signal(signal.SIGALRM, timeout_handler)
