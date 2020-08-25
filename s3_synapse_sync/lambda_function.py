@@ -7,7 +7,6 @@ import base64
 import boto3
 import hashlib
 import mimetypes
-import re
 import synapseclient
 import tempfile
 import uuid
@@ -25,9 +24,8 @@ def lambda_handler(event, context):
 
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
-    clean_bucket_name = re.sub('[^0-9a-zA-Z]+', '_', bucket)
-    ev_project = 'p_'+clean_bucket_name+'_synapseProjectId'
-    ev_folders = 'p_'+clean_bucket_name+'_foldersToSync'
+    ev_project = bucket+'_synapseProjectId'
+    ev_folders = bucket+'_foldersToSync'
 
     username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
     apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
