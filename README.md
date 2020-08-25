@@ -229,12 +229,10 @@ aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --typ
 
 3. From **Account A**, add bucket-specific environment variables for each subsequent bucket:
 
-| Environment Variable Name*  | Value Description |
+| Environment Variable Name  | Value Description |
 | ------------- | ------------- |
-| `p_<bucket_name>_synapseProjectId` | Synapse ID of project; an identifier with the format `syn12345678` |
-| `p_<bucket_name>_foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse |
-
-*Any non-alphanumeric characters in \<bucket_name\> must replaced with an underscore
+| `<bucket_name>_synapseProjectId` | Synapse ID of project; an identifier with the format `syn12345678` |
+| `<bucket_name>_foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse |
 
 ```
 aws lambda update-function-configuration --function-name <value> --environment Variables="{<bucket_name>_synapseProjectId=<value>,<bucket_name>_foldersToSync=<value>}"
