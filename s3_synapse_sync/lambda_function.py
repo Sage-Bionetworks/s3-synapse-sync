@@ -22,23 +22,22 @@ def lambda_handler(event, context):
     filename = os.path.basename(key)
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
-    ev_project = bucket+'_synapseProjectId'
-    ev_folders = bucket+'_foldersToSync'
 
     username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
     apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
-    project_id = os.environ.get(ev_project, 'synapseProjectId variable is not set.')
-    inclFolders = os.environ.get(ev_folders, 'foldersToSync environment variable is not set.')
+    project_id = os.environ.get('SYNAPSE_PROJECT_ID', 'SYNAPSE_PROJECT_ID variable is not set.')
+    inclFolders = os.environ.get('SYNAPSE_FOLDERS_TO_SYNC', 'SYNAPSE_FOLDERS_TO_SYNC environment variable is not set.')
 
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
     syn = synapseclient.Synapse()
     syn.login(email=username,apiKey=apiKey)
 
-    if key.split('/')[0] in inclFolders.split(','):
-        if 'ObjectCreated' in eventname:
-            create_filehandle(syn, event, filename, bucket, key, project_id)
-        elif 'ObjectRemoved' in eventname:
-            delete_file(syn, filename, project_id, key)
+    for folder in inclFolders:
+        if key.split('/')[0] in folder.split(','):
+            if 'ObjectCreated' in eventname:
+                create_filehandle(syn, event, filename, bucket, key, project_id)
+            elif 'ObjectRemoved' in eventname:
+                delete_file(syn, filename, project_id, key)
 
 def create_filehandle(syn, event, filename, bucket, key, project_id):
     print("filename: "+str(filename))

@@ -235,7 +235,9 @@ aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --typ
 | `<bucket_name>_foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse |
 
 ```
-aws lambda update-function-configuration --function-name <value> --environment Variables="{<bucket_name>_synapseProjectId=<value>,<bucket_name>_foldersToSync=<value>}"
+aws lambda update-function-configuration \
+--function-name <value> \
+--environment Variables="{SynapseProjectId=<value>, SynapseFoldersToSync=BucketA/FolderX,BucketA/FolderY,BucketB/FolderX}"
 ```
 
 ---
