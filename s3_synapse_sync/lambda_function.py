@@ -8,7 +8,6 @@ import boto3
 import hashlib
 import mimetypes
 import re
-import signal
 import synapseclient
 import tempfile
 import uuid
@@ -18,7 +17,6 @@ ssm = boto3.client('ssm')
 MD5_BLOCK_SIZE = 50 * 1024 ** 2
 
 def lambda_handler(event, context):
-    signal.alarm(int(context.get_remaining_time_in_millis() / 1000) - 1)
     print(event)
     eventname = event['Records'][0]['eventName']
     bucket = event['Records'][0]['s3']['bucket']['name']
@@ -129,9 +127,3 @@ def _block_hash(file_obj, blocksize, hash=None):
     for block in iter(lambda: file_obj.read(blocksize), b""):
         hash.update(block)
     return hash
-
-def timeout_handler(_signal, _frame):
-    '''Handle SIGALRM'''
-    raise Exception('Time exceeded')
-
-signal.signal(signal.SIGALRM, timeout_handler)
