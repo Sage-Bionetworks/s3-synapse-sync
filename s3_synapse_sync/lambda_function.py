@@ -3,6 +3,7 @@ import os
 import sys
 
 from urllib.parse import unquote_plus
+import base64
 import boto3
 import hashlib
 import mimetypes
@@ -20,6 +21,7 @@ def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = unquote_plus(event['Records'][0]['s3']['object']['key'])
     filename = os.path.basename(key)
+
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
     ev_project = bucket+'_synapseProjectId'
@@ -43,8 +45,8 @@ def lambda_handler(event, context):
 def create_filehandle(syn, event, filename, bucket, key, project_id):
     print("filename: "+str(filename))
     parent = get_parent_folder(syn, project_id, key)
-    s3_object = s3.get_object(Bucket=bucket, Key=key)
-    md5 = md5sum(s3_object["Body"])
+    header = s3.head_object(Bucket=bucket, Key=key)
+    md5 = get_md5(event, header, bucket, key)
     file_id = syn.findEntityId(filename, parent)
 
     if file_id != None:
@@ -84,6 +86,20 @@ def delete_file(syn, filename, project_id, key):
     parent_id = get_parent_folder(syn, project_id, key)
     file_id = syn.findEntityId(filename, parent_id)
     syn.delete(file_id)
+
+def get_md5(event, header, bucket, key):
+    """
+    Check if eTag is equivalent to md5 or md5 provided by user during upload. If not, compute md5.
+    """
+    eTag = event['Records'][0]['s3']['object']['eTag']
+    if '-' not in eTag:
+        md5 = eTag
+    elif "content-md5" in header['Metadata']:
+        md5 = base64.b64decode(header['Metadata']['content-md5']).hex()
+    else:
+        s3_object = s3.get_object(Bucket=bucket, Key=key)
+        md5 = md5sum(s3_object["Body"])
+    return md5
 
 # Modified from Phil's code
 def md5sum(file_obj=None, blocksize=None):
