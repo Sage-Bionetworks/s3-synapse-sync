@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   S3 Synapse sync lambda
 
+Parameters:
+  BucketVariables:
+    Description: 'Yaml string defining Synapse project ID and folders in bucket to be synced to Synapse'
+    Type: String
+
 Resources:
   S3SynapseLambdaExecute:
     Type: AWS::IAM::ManagedPolicy
@@ -44,6 +49,9 @@ Resources:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
       Role: !GetAtt FunctionRole.Arn
+      Environment:
+        Variables:
+          BUCKET_VARIABLES: !Ref BucketVariables
       Timeout: 900
       MemorySize: 320
 

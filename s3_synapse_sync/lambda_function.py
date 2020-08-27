@@ -10,6 +10,7 @@ import mimetypes
 import synapseclient
 import tempfile
 import uuid
+import yaml
 
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
@@ -24,19 +25,19 @@ def lambda_handler(event, context):
 
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
-    ev_project = bucket+'_synapseProjectId'
-    ev_folders = bucket+'_foldersToSync'
-
     username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
     apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
-    project_id = os.environ.get(ev_project, 'synapseProjectId variable is not set.')
-    inclFolders = os.environ.get(ev_folders, 'foldersToSync environment variable is not set.')
+
+    envvars = _load_bucket_vars()
+    project_id = envvars[bucket]['SynapseProjectId']
+    print('SynapseProjectId: '+str(project_id))
+    inclFolders = envvars[bucket]['FoldersToSync']
 
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
     syn = synapseclient.Synapse()
     syn.login(email=username,apiKey=apiKey)
 
-    if key.split('/')[0] in inclFolders.split(','):
+    if key.split('/')[0] in inclFolders:
         if 'ObjectCreated' in eventname:
             create_filehandle(syn, event, filename, bucket, key, project_id)
         elif 'ObjectRemoved' in eventname:
@@ -125,3 +126,28 @@ def _block_hash(file_obj, blocksize, hash=None):
     for block in iter(lambda: file_obj.read(blocksize), b""):
         hash.update(block)
     return hash
+
+
+def _get_env_var(name):
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(('Lambda configuration error: '
+            f'missing environment variable {name}'))
+    return value
+
+def _load_yaml(yaml_string, config_name=None):
+    try:
+        output = yaml.safe_load(yaml_string)
+    except yaml.YAMLError as e:
+        error_message = (
+            f'There was an error when attempting to load {config_name}. '
+            f'Error details: {e}'
+        )
+        raise Exception(error_message)
+    return output
+
+def _load_bucket_vars():
+    return _load_yaml(
+        _get_env_var('BUCKET_VARIABLES'),
+        'bucket_variables'
+        )
