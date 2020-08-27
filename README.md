@@ -78,7 +78,7 @@ Note: The steps below outline the setup for a case where the Lambda function is 
 
 4. From **Account B**, create a bucket
 
-    - *Bucket name must start with a letter and can only contain letters, numbers, and underscores*
+    *Buckets must be explicitly named and names must be globally unique across all AWS accounts*
     - Note: Lambda and bucket must be in the same region
 
 5. From **Account B**, configure your bucket to be the external storage location of your Synapse project, as outlined in [Synapse documentation](https://docs.synapse.org/articles/custom_storage_location.html#toc-custom-storage-locations)
