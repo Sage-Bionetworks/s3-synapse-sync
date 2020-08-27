@@ -78,7 +78,7 @@ Note: The steps below outline the setup for a case where the Lambda function is 
 
 4. From **Account B**, create a bucket
 
-    - *Bucket name must start with a letter and can only contain letters, numbers, and underscores*
+    *Buckets must be explicitly named and names must be globally unique across all AWS accounts*
     - Note: Lambda and bucket must be in the same region
 
 5. From **Account B**, configure your bucket to be the external storage location of your Synapse project, as outlined in [Synapse documentation](https://docs.synapse.org/articles/custom_storage_location.html#toc-custom-storage-locations)
@@ -227,15 +227,24 @@ source venv/bin/activate
 aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --type SecureString
 ```
 
-3. From **Account A**, add bucket-specific environment variables for each subsequent bucket:
+3. Add environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket:
 
-| Environment Variable Name  | Value Description |
-| ------------- | ------------- |
-| `<bucket_name>_synapseProjectId` | Synapse ID of project; an identifier with the format `syn12345678` |
-| `<bucket_name>_foldersToSync` | Comma separated list of folders in bucket to be synchronized to Synapse |
+    - The ID of the center's Synapse project
+    - Folders in the bucket to be synced to Synapse
 
+Example:
 ```
-aws lambda update-function-configuration --function-name <value> --environment Variables="{<bucket_name>_synapseProjectId=<value>,<bucket_name>_foldersToSync=<value>}"
+bucket-a:
+  SynapseProjectId: syn11111
+  FoldersToSync:
+    - folderA
+    - folderB
+bucket-b:
+  SynapseProjectId: syn22222
+  FoldersToSync:
+    - folderA
+    - folderB
+    - folderC
 ```
 
 ---
