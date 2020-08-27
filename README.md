@@ -19,6 +19,18 @@ information see the [pipenv docs](https://pipenv.pypa.io/en/latest/).
 After activating the virtual environment, run `pre-commit install` to install
 the [pre-commit](https://pre-commit.com/) git hook.
 
+#### Parameters
+Add two **SecureString** parameters containing Synapse credentials to SSM Parameter Store 
+
+| Parameter Name  | Value | Type |
+| ------------- | ------------- | ------------- |
+| `/HTAN/SynapseSync/username`  | `synapse-service-HTAN-lambda`  | SecureString |
+| `/HTAN/SynapseSync/apiKey`  | Synapse service account API Key | SecureString |
+
+```
+aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --type SecureString
+```
+
 #### Environment Variables
 This lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket:
 
