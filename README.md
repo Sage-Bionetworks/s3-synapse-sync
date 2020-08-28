@@ -104,7 +104,7 @@ parameters:
   S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
   S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
 
-# Due to circular dependency enabling bucket notification must be done after bucket creation
+# Due to circular dependencies, enabling bucket notification must be done after bucket creation"
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
 sceptre_user_data:
   EnableNotificationConfiguration: "false"
