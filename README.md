@@ -20,7 +20,7 @@ After activating the virtual environment, run `pre-commit install` to install
 the [pre-commit](https://pre-commit.com/) git hook.
 
 #### Parameters
-Add two **SecureString** parameters containing Synapse credentials to SSM Parameter Store 
+Add two **SecureString** parameters containing Synapse credentials to SSM Parameter Store
 
 | Parameter Name  | Value | Type |
 | ------------- | ------------- | ------------- |
