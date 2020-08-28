@@ -7,6 +7,9 @@ Parameters:
   BucketVariables:
     Description: 'Yaml string defining Synapse project ID and folders in bucket to be synced to Synapse'
     Type: String
+  KmsDecryptPolicyArn:
+    Description: 'The KMS key policy ARN to access the Synapse service user secrets'
+    Type: String
 
 Resources:
   S3SynapseLambdaExecute:
@@ -71,8 +74,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - !Ref SSMParameterStore
         - !Ref S3SynapseLambdaExecute
-        - !ImportValue
-          'Fn::Sub': '${AWS::Region}-htan-synapse-sync-kms-key-KmsDecryptPolicyArn'
+        - !Ref KmsDecryptPolicyArn
 
 Outputs:
   FunctionArn:
