@@ -24,7 +24,7 @@ Add two **SecureString** parameters containing Synapse credentials to SSM Parame
 
 | Parameter Name  | Value | Type |
 | ------------- | ------------- | ------------- |
-| `/HTAN/SynapseSync/username`  | `synapse-service-HTAN-lambda`  | SecureString |
+| `/HTAN/SynapseSync/username`  | Synapse service account username  | SecureString |
 | `/HTAN/SynapseSync/apiKey`  | Synapse service account API Key | SecureString |
 
 ```
@@ -34,8 +34,8 @@ aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --typ
 #### Environment Variables
 This lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket:
 
-    - The ID of the center's Synapse project
-    - Folders in the bucket to be synced to Synapse
+- The ID of the center's Synapse project
+- Folders in the bucket to be synced to Synapse
 
 Example:
 ```
