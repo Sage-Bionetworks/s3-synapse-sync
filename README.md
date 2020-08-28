@@ -78,7 +78,7 @@ bucket-b:
 
 *Note: Buckets must be explicitly named and names must be globally unique across all AWS accounts*
 
-Now [Install Lambda into AWS](#Install Lambda into AWS)
+Now [Install Lambda into AWS](#install-lambda-into-aws)
 
 Create a sceptre s3-synapse-sync-bucket-a.yaml file used to deploy jinjaized
 cloudformation template [s3-synapse-sync-bucket-a.yaml](s3-synapse-sync-bucket.j2):
