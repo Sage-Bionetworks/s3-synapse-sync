@@ -20,6 +20,26 @@ After activating the virtual environment, run `pre-commit install` to install
 the [pre-commit](https://pre-commit.com/) git hook.
 
 #### Parameters
+Create a AWS KMS key to encrypte secure strings.
+
+Create a sceptre s3-synapse-sync-kms-key.yaml file used to deploy cloudformation
+template [s3-synapse-sync-kms-key.yaml](s3-synapse-sync-kms-key.yaml):
+```yaml
+template_path: "s3-synapse-sync-kms-key.yaml"
+stack_name: "s3-synapse-sync-kms-key"
+stack_tags:
+  Department: "CompOnc"
+  Project: "HTAN"
+  OwnerEmail: "joe.smith@sagebase.org"
+```
+__Note__: You may need to add your user ARN to the policy principal in the
+cloudformation template.
+
+Deploy the stack using sceptre:
+```shell script
+sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/s3-synapse-sync-kms-key.yaml
+```
+
 Add two **SecureString** parameters containing Synapse credentials to SSM Parameter Store
 
 | Parameter Name  | Value | Type |
@@ -27,8 +47,12 @@ Add two **SecureString** parameters containing Synapse credentials to SSM Parame
 | `/HTAN/SynapseSync/username`  | Synapse service account username  | SecureString |
 | `/HTAN/SynapseSync/apiKey`  | Synapse service account API Key | SecureString |
 
-```
-aws ssm put-parameter --name /HTAN/SynapseSync/<parameter> --value <value> --type SecureString
+```shell script
+aws ssm put-parameter \
+  --name /HTAN/SynapseSync/username \
+  --value <synapse user name> \
+  --type SecureString \
+  --key-id alias/s3-synapse-sync-kms-key/kmskey
 ```
 
 #### Environment Variables
@@ -37,8 +61,8 @@ This lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format 
 - The ID of the center's Synapse project
 - Folders in the bucket to be synced to Synapse
 
-Example:
-```
+s3-synapse-sync-bucket-vars.yaml:
+```yaml
 bucket-a:
   SynapseProjectId: syn11111
   FoldersToSync:
@@ -53,6 +77,43 @@ bucket-b:
 ```
 
 *Note: Buckets must be explicitly named and names must be globally unique across all AWS accounts*
+
+Now [Install Lambda into AWS](#install-lambda-into-aws)
+
+Create a sceptre s3-synapse-sync-bucket-a.yaml file used to deploy jinjaized
+cloudformation template [s3-synapse-sync-bucket-a.yaml](s3-synapse-sync-bucket.j2):
+```yaml
+template_path: "remote/s3-synapse-sync-bucket.j2"
+stack_name: "s3-synapse-sync-bucket-a"
+stack_tags:
+  Department: "CompOnc"
+  Project: "HTAN"
+  OwnerEmail: "joe.smith@sagebase.org"
+hooks:
+  before_launch:
+    - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync-bucket.j2 --create-dirs -o templates/remote/s3-synapse-sync-bucket.j2"
+dependencies:
+  - "prod/s3-synapse-sync.yaml"
+parameters:
+  BucketName: "s3-synapse-sync-bucket-a"  # must match bucket name in s3-synapse-sync-bucket-vars.yaml
+  SynapseIDs:
+    - "1111111"
+  S3UserARNs:
+    - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
+  S3CanonicalUserId: "eab4436941f355ce866fcf7944db42020c385ad1f19df8a95704dc4d7552fa06"
+  S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
+  S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
+
+# Due to circular dependencies, enabling bucket notification must be done after bucket creation"
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
+sceptre_user_data:
+  EnableNotificationConfiguration: "false"
+```
+
+Deploy with sceptre, Notification configuration is disabled on 1st deploy.
+Deploy a 2nd time with `EnableNotificationConfiguration: "true"`
+
+---
 
 ### Create a local build
 
@@ -98,17 +159,23 @@ aws s3 cp .aws-sam/build/s3-synapse-sync.yaml s3://bootstrap-awss3cloudformation
 ## Install Lambda into AWS
 Create the following [sceptre](https://github.com/Sceptre/sceptre) file
 
-config/prod/s3-synapse-sync.yaml
+Create a sceptre s3-synapse-sync.yaml file used to deploy cloudformation
+template [s3-synapse-sync.yaml](template.yaml):
 ```yaml
 template_path: "remote/s3-synapse-sync.yaml"
 stack_name: "s3-synapse-sync"
 stack_tags:
-  Department: "Platform"
-  Project: "Infrastructure"
-  OwnerEmail: "it@sagebase.org"
+  Department: "CompOnc"
+  Project: "HTAN"
+  OwnerEmail: "joe.smith@sagebase.org"
+dependencies:
+  - "prod/s3-synapse-sync-kms-key.yaml"
 hooks:
   before_launch:
-    - !cmd "curl https://s3.amazonaws.com/bootstrap-awss3cloudformationbucket-19qromfd235z9/s3-synapse-sync/master/s3-synapse-sync.yaml --create-dirs -o templates/remote/s3-synapse-sync.yaml"
+    - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync.yaml --create-dirs -o templates/remote/s3-synapse-sync.yaml"
+parameters:
+  BucketVariables: !file_contents "data/s3-synapse-sync-bucket-vars.yaml"
+  KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
 ```
 
 Install the lambda using sceptre:
