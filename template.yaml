@@ -27,7 +27,7 @@ Resources:
             - s3:GetObject
             - s3:PutObject
             - s3:PutObjectAcl
-          Resource: arn:aws:s3:::*
+          Resource: arn:aws:s3:::htan-synapse-sync-*/*
 
   SSMParameterStore:
     Type: AWS::IAM::ManagedPolicy
