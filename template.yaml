@@ -11,7 +11,7 @@ Parameters:
     Description: 'The KMS key policy ARN to access the Synapse service user secrets'
     Type: String
   BucketNamePrefix:
-    Description: 'Name prefix of buckets accessed by the lambda'
+    Description: 'Prefix of buckets accessed by the lambda'
     Type: String
     ConstraintDescription: >-
       Must be prefix of bucket name followed by wildcard (e.g. htan-dcc-*)
