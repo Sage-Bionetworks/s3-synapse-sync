@@ -13,6 +13,8 @@ Parameters:
   BucketNamePrefix:
     Description: 'Name prefix of buckets accessed by the lambda'
     Type: String
+    ConstraintDescription: >-
+      Must be prefix of bucket name followed by wildcard (e.g. htan-dcc-*)
 
 Resources:
   S3SynapseLambdaExecute:
@@ -30,7 +32,7 @@ Resources:
             - s3:GetObject
             - s3:PutObject
             - s3:PutObjectAcl
-          Resource: !Sub "arn:aws:s3:::${BucketNamePrefix}*/*"
+          Resource: !Sub "arn:aws:s3:::${BucketNamePrefix}/*"
 
   SSMParameterStore:
     Type: AWS::IAM::ManagedPolicy
