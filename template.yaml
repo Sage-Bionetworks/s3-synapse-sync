@@ -13,8 +13,6 @@ Parameters:
   BucketNamePrefix:
     Description: 'Prefix of buckets accessed by the lambda'
     Type: String
-    ConstraintDescription: >-
-      Must be prefix of bucket name followed by wildcard (e.g. htan-dcc-*)
 
 Resources:
   S3SynapseLambdaExecute:
