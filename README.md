@@ -148,7 +148,7 @@ sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/s3-synap
 
 ---
 ## Create Buckets
-**Note**: Buckets must be explicitly named. Bucket names must begin with the prefix specified in the lambda parameter `BucketNamePrefix` (e.g.: htan-dcc-*) and must be globally unique across all AWS accounts.
+**Note**: Buckets must be explicitly named. Bucket names must begin with the prefix specified in the lambda parameter `BucketNamePrefix` (e.g. htan-dcc-*) and must be globally unique across all AWS accounts.
 
 Create a sceptre s3-synapse-sync-bucket-a.yaml file used to deploy jinjaized
 cloudformation template [s3-synapse-sync-bucket-a.yaml](s3-synapse-sync-bucket.j2):
