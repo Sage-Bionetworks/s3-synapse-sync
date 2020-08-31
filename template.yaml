@@ -10,6 +10,9 @@ Parameters:
   KmsDecryptPolicyArn:
     Description: 'The KMS key policy ARN to access the Synapse service user secrets'
     Type: String
+  BucketNamePrefix:
+    Description: 'Prefix of buckets accessed by the lambda'
+    Type: String
 
 Resources:
   S3SynapseLambdaExecute:
@@ -27,7 +30,7 @@ Resources:
             - s3:GetObject
             - s3:PutObject
             - s3:PutObjectAcl
-          Resource: arn:aws:s3:::*
+          Resource: !Sub "arn:aws:s3:::${BucketNamePrefix}/*"
 
   SSMParameterStore:
     Type: AWS::IAM::ManagedPolicy

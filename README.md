@@ -20,7 +20,7 @@ After activating the virtual environment, run `pre-commit install` to install
 the [pre-commit](https://pre-commit.com/) git hook.
 
 #### Parameters
-Create a AWS KMS key to encrypte secure strings.
+Create an AWS KMS key to encrypt secure strings.
 
 Create a sceptre s3-synapse-sync-kms-key.yaml file used to deploy cloudformation
 template [s3-synapse-sync-kms-key.yaml](s3-synapse-sync-kms-key.yaml):
@@ -56,64 +56,26 @@ aws ssm put-parameter \
 ```
 
 #### Environment Variables
-This lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket:
+The lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket:
 
 - The ID of the center's Synapse project
 - Folders in the bucket to be synced to Synapse
 
 s3-synapse-sync-bucket-vars.yaml:
 ```yaml
-bucket-a:
+htan-dcc-bucket-a:
   SynapseProjectId: syn11111
   FoldersToSync:
     - folderA
     - folderB
-bucket-b:
+htan-dcc-bucket-b:
   SynapseProjectId: syn22222
   FoldersToSync:
     - folderA
     - folderB
     - folderC
 ```
-
-*Note: Buckets must be explicitly named and names must be globally unique across all AWS accounts*
-
-Now [Install Lambda into AWS](#install-lambda-into-aws)
-
-Create a sceptre s3-synapse-sync-bucket-a.yaml file used to deploy jinjaized
-cloudformation template [s3-synapse-sync-bucket-a.yaml](s3-synapse-sync-bucket.j2):
-```yaml
-template_path: "remote/s3-synapse-sync-bucket.j2"
-stack_name: "s3-synapse-sync-bucket-a"
-stack_tags:
-  Department: "CompOnc"
-  Project: "HTAN"
-  OwnerEmail: "joe.smith@sagebase.org"
-hooks:
-  before_launch:
-    - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync-bucket.j2 --create-dirs -o templates/remote/s3-synapse-sync-bucket.j2"
-dependencies:
-  - "prod/s3-synapse-sync.yaml"
-parameters:
-  BucketName: "s3-synapse-sync-bucket-a"  # must match bucket name in s3-synapse-sync-bucket-vars.yaml
-  SynapseIDs:
-    - "1111111"
-  S3UserARNs:
-    - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
-  S3CanonicalUserId: "eab4436941f355ce866fcf7944db42020c385ad1f19df8a95704dc4d7552fa06"
-  S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
-  S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
-
-# Due to circular dependencies, enabling bucket notification must be done after bucket creation"
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
-sceptre_user_data:
-  EnableNotificationConfiguration: "false"
-```
-
-Deploy with sceptre, Notification configuration is disabled on 1st deploy.
-Deploy a 2nd time with `EnableNotificationConfiguration: "true"`
-
----
+See [**Note**](#create-buckets) on bucket names
 
 ### Create a local build
 
@@ -176,6 +138,7 @@ hooks:
 parameters:
   BucketVariables: !file_contents "data/s3-synapse-sync-bucket-vars.yaml"
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
+  BucketNamePrefix: "htan-dcc-*"
 ```
 
 Install the lambda using sceptre:
@@ -184,8 +147,45 @@ sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/s3-synap
 ```
 
 ---
+## Create Buckets
+**Note**: Buckets must be explicitly named. Bucket names must begin with the prefix specified in the lambda parameter `BucketNamePrefix` (e.g.: htan-dcc-*) and must be globally unique across all AWS accounts.
 
-### To Test:
+Create a sceptre s3-synapse-sync-bucket-a.yaml file used to deploy jinjaized
+cloudformation template [s3-synapse-sync-bucket-a.yaml](s3-synapse-sync-bucket.j2):
+```yaml
+template_path: "remote/s3-synapse-sync-bucket.j2"
+stack_name: "s3-synapse-sync-bucket-a"
+stack_tags:
+  Department: "CompOnc"
+  Project: "HTAN"
+  OwnerEmail: "joe.smith@sagebase.org"
+hooks:
+  before_launch:
+    - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync-bucket.j2 --create-dirs -o templates/remote/s3-synapse-sync-bucket.j2"
+dependencies:
+  - "prod/s3-synapse-sync.yaml"
+parameters:
+  BucketName: "htan-dcc-bucket-a"  # must match bucket name in s3-synapse-sync-bucket-vars.yaml
+  SynapseIDs:
+    - "syn1111111"
+  S3UserARNs:
+    - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
+  S3CanonicalUserId: "eab4436941f355ce866fcf7944db42020c385ad1f19df8a95704dc4d7552fa06"
+  S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
+  S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
+
+# Due to circular dependencies, enabling bucket notification must be done after bucket creation"
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
+sceptre_user_data:
+  EnableNotificationConfiguration: "false"
+```
+
+Deploy with sceptre, Notification configuration is disabled on 1st deploy.
+Deploy a 2nd time with `EnableNotificationConfiguration: "true"`
+
+---
+
+### To Use:
 1. Place a file in one of the folders specified in the `foldersToSync` parameter
     - Include the `--grants` flag upon upload to grant full control of the object to both
         1. the Synapse account
