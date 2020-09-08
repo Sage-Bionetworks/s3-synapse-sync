@@ -63,7 +63,6 @@ The lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format s
 
 s3-synapse-sync-bucket-vars.yaml:
 ```yaml
-SynapseCanonicalId: d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440
 htan-dcc-bucket-a:
   SynapseProjectId: syn11111
   FoldersToSync:
@@ -140,6 +139,7 @@ parameters:
   BucketVariables: !file_contents "data/s3-synapse-sync-bucket-vars.yaml"
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
+  SynapseCanonicalId: "d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440"
 ```
 
 Install the lambda using sceptre:
@@ -171,7 +171,6 @@ parameters:
     - "syn1111111"
   S3UserARNs:
     - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
-  S3CanonicalUserId: "eab4436941f355ce866fcf7944db42020c385ad1f19df8a95704dc4d7552fa06"
   S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
   S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
 
