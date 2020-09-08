@@ -21,18 +21,6 @@ Parameters:
     Default: "arn:aws:iam::325565585839:root"
     ConstraintDescription: >-
       Must be the ARN of the Synapse root account
-  SynapseCanonicalId:
-    Type: String
-    Description: The Synapse AWS account canonical ID
-    Default: "d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440"
-    ConstraintDescription: >-
-      Must be the canonical ID for the AWS Synapse account
-  S3CanonicalUserId:
-    Type: String
-    Description: The S3 canonical user ID
-    ConstraintDescription: >-
-      Must be the S3 user canonical ID
-      (i.e eab4436941f355ce866fcf7944db42020c385ad1f19df8a95704dc4d7552fa06)
   SynapseIDs:
     Type: CommaDelimitedList
     Description: >-
@@ -135,9 +123,7 @@ Resources:
             Sid: "Require canonical ID on object updates"
             Effect: Deny
             Principal:
-              AWS: !Split
-                - ","
-                - !Ref S3UserARNs
+              AWS: !Ref S3UserARNs
             Action: s3:PutObject
             Resource: !Sub "${S3Bucket.Arn}/*"
             Condition:
