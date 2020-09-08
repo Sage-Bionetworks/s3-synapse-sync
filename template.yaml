@@ -13,12 +13,6 @@ Parameters:
   BucketNamePrefix:
     Description: 'Prefix of buckets accessed by the lambda'
     Type: String
-  SynapseCanonicalId:
-    Type: String
-    Description: The Synapse AWS account canonical ID
-    Default: "d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440"
-    ConstraintDescription: >-
-      Must be the canonical ID for the AWS Synapse account
 
 Resources:
   S3SynapseLambdaExecute:
@@ -64,7 +58,6 @@ Resources:
       Environment:
         Variables:
           BUCKET_VARIABLES: !Ref BucketVariables
-          SYNAPSE_CANONICAL_ID: !Ref SynapseCanonicalId
       Timeout: 900
       MemorySize: 320
 

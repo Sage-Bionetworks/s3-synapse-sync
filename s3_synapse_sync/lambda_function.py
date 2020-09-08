@@ -30,7 +30,6 @@ def lambda_handler(event, context):
 
     envvars = _load_bucket_vars()
     project_id = envvars[bucket]['SynapseProjectId']
-    print('SynapseProjectId: '+str(project_id))
     inclFolders = envvars[bucket]['FoldersToSync']
 
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
@@ -39,11 +38,11 @@ def lambda_handler(event, context):
 
     if key.split('/')[0] in inclFolders:
         if 'ObjectCreated' in eventname:
-            create_filehandle(syn, event, filename, bucket, key, project_id)
+            create_filehandle(syn, event, filename, bucket, key, project_id, envvars)
         elif 'ObjectRemoved' in eventname:
             delete_file(syn, filename, project_id, key)
 
-def create_filehandle(syn, event, filename, bucket, key, project_id):
+def create_filehandle(syn, event, filename, bucket, key, project_id, envvars):
     print("filename: "+str(filename))
     parent = get_parent_folder(syn, project_id, key)
     header = s3.head_object(Bucket=bucket, Key=key)
@@ -58,7 +57,7 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
         contentType = mimetypes.guess_type(filename, strict=False)[0]
         storage_id = syn.restGET("/projectSettings/"+project_id+"/type/upload")['locations'][0]
 
-        synapse_canonical_id = os.environ.get('SYNAPSE_CANONICAL_ID')
+        synapse_canonical_id = envvars['SynapseCanonicalId']
         boto3.resource('s3').ObjectAcl(bucket, key).put(GrantRead='id='+synapse_canonical_id)
 
         fileHandle = {'concreteType': 'org.sagebionetworks.repo.model.file.S3FileHandle',
