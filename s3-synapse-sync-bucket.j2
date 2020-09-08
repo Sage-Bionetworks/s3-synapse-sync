@@ -137,16 +137,12 @@ Resources:
             Principal:
               AWS: !Split
                 - ","
-                - !Sub
-                  - "${list},${SynapseRootArn}"
-                  - list: !Join [",",!Ref "S3UserARNs"]
+                - !Ref S3UserARNs
             Action: s3:PutObject
             Resource: !Sub "${S3Bucket.Arn}/*"
             Condition:
-              StringNotEqualsIgnoreCase:
-                s3:x-amz-grant-full-control: !Sub "id=${SynapseCanonicalId},id=${S3CanonicalUserId}"
               StringNotEquals:
-                s3:x-amz-grant-full-control: !Sub "id=${SynapseCanonicalId}, id=${S3CanonicalUserId}"
+                s3:x-amz-acl: bucket-owner-full-control 
 
   # Add owner file to the synapse bucket, requires the cloudformation S3 objects macro
   # https://github.com/Sage-Bionetworks-IT/cfn-s3objects-macro

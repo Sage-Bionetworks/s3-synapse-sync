@@ -187,18 +187,14 @@ Deploy a 2nd time with `EnableNotificationConfiguration: "true"`
 
 ### To Use:
 1. Place a file in one of the folders specified in the `foldersToSync` parameter
-    - Include the `--grants` flag upon upload to grant full control of the object to both
-        1. the Synapse account
-            - Synapse canonical ID: `d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440`
-        2. the bucket owner account
-            - i.e. Sage Sandbox (canonical ID: `9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed`)
+    - Grant the bucket owner full control of the object by including the flag `--acl bucket-owner-full-control`
 
 Example `cp` and `put-object` commands:
 ```
-aws s3 cp test.txt s3://MyBucket/test.txt --grants full=id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed
+aws s3 cp test.txt s3://MyBucket/test.txt --acl bucket-owner-full-control
 ```
 ```
-aws s3api put-object --bucket MyBucket --key TestFolder/test.txt --body test.txt --grant-full-control id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed
+aws s3api put-object --bucket MyBucket --key TestFolder/test.txt --body test.txt --acl bucket-owner-full-control
 ```
 
 2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully
