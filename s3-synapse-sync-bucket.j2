@@ -142,7 +142,7 @@ Resources:
             Resource: !Sub "${S3Bucket.Arn}/*"
             Condition:
               StringNotEquals:
-                s3:x-amz-acl: bucket-owner-full-control 
+                s3:x-amz-acl: bucket-owner-full-control
 
   # Add owner file to the synapse bucket, requires the cloudformation S3 objects macro
   # https://github.com/Sage-Bionetworks-IT/cfn-s3objects-macro
