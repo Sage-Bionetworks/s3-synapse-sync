@@ -63,6 +63,7 @@ The lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format s
 
 s3-synapse-sync-bucket-vars.yaml:
 ```yaml
+SynapseCanonicalId: d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440
 htan-dcc-bucket-a:
   SynapseProjectId: syn11111
   FoldersToSync:
