@@ -50,8 +50,6 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
     md5 = get_md5(event, header, bucket, key)
     file_id = syn.findEntityId(filename, parent)
 
-    boto3.resource('s3').ObjectAcl(bucket, key).put(GrantRead='id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440')
-
     if file_id != None:
         targetMD5 = syn.get(file_id, downloadFile=False)['md5'];
 
@@ -59,6 +57,8 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
         size = event['Records'][0]['s3']['object']['size']
         contentType = mimetypes.guess_type(filename, strict=False)[0]
         storage_id = syn.restGET("/projectSettings/"+project_id+"/type/upload")['locations'][0]
+
+        boto3.resource('s3').ObjectAcl(bucket, key).put(GrantRead='id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440')
 
         fileHandle = {'concreteType': 'org.sagebionetworks.repo.model.file.S3FileHandle',
                             'fileName'    : filename,
