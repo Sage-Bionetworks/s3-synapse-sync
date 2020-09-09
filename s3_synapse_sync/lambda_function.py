@@ -30,7 +30,6 @@ def lambda_handler(event, context):
 
     envvars = _load_bucket_vars()
     project_id = envvars[bucket]['SynapseProjectId']
-    print('SynapseProjectId: '+str(project_id))
     inclFolders = envvars[bucket]['FoldersToSync']
 
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
@@ -57,6 +56,9 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
         size = event['Records'][0]['s3']['object']['size']
         contentType = mimetypes.guess_type(filename, strict=False)[0]
         storage_id = syn.restGET("/projectSettings/"+project_id+"/type/upload")['locations'][0]
+
+        synapse_canonical_id = _get_env_var('SYNAPSE_CANONICAL_ID')
+        boto3.resource('s3').ObjectAcl(bucket, key).put(GrantRead='id='+synapse_canonical_id)
 
         fileHandle = {'concreteType': 'org.sagebionetworks.repo.model.file.S3FileHandle',
                             'fileName'    : filename,

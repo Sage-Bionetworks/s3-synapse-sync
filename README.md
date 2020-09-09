@@ -139,6 +139,7 @@ parameters:
   BucketVariables: !file_contents "data/s3-synapse-sync-bucket-vars.yaml"
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
+  SynapseCanonicalId: "d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440"
 ```
 
 Install the lambda using sceptre:
@@ -170,7 +171,6 @@ parameters:
     - "syn1111111"
   S3UserARNs:
     - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
-  S3CanonicalUserId: "eab4436941f355ce866fcf7944db42020c385ad1f19df8a95704dc4d7552fa06"
   S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
   S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
 
@@ -187,18 +187,14 @@ Deploy a 2nd time with `EnableNotificationConfiguration: "true"`
 
 ### To Use:
 1. Place a file in one of the folders specified in the `foldersToSync` parameter
-    - Include the `--grants` flag upon upload to grant full control of the object to both
-        1. the Synapse account
-            - Synapse canonical ID: `d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440`
-        2. the bucket owner account
-            - i.e. Sage Sandbox (canonical ID: `9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed`)
+    - Grant the bucket owner full control of the object by including the flag `--acl bucket-owner-full-control`
 
 Example `cp` and `put-object` commands:
 ```
-aws s3 cp test.txt s3://MyBucket/test.txt --grants full=id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed
+aws s3 cp test.txt s3://MyBucket/test.txt --acl bucket-owner-full-control
 ```
 ```
-aws s3api put-object --bucket MyBucket --key TestFolder/test.txt --body test.txt --grant-full-control id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,id=9038e06f22b4c2611873a9ac491ce754aa2353b45e19ab508577ee99863128ed
+aws s3api put-object --bucket MyBucket --key TestFolder/test.txt --body test.txt --acl bucket-owner-full-control
 ```
 
 2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully
