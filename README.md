@@ -168,7 +168,7 @@ dependencies:
 parameters:
   BucketName: "htan-dcc-bucket-a"  # must match bucket name in s3-synapse-sync-bucket-vars.yaml
   SynapseIDs:
-    - "syn1111111"
+    - "1111111"
   S3UserARNs:
     - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
   S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
