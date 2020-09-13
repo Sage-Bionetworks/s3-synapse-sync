@@ -43,11 +43,10 @@ def lambda_handler(event, context):
             delete_file(syn, filename, project_id, key)
 
 def create_filehandle(syn, event, filename, bucket, key, project_id):
-    print("filename: "+str(filename))
-    parent = get_parent_folder(syn, project_id, key)
+    parent_id = get_parent_folder(syn, project_id, key)
     header = s3.head_object(Bucket=bucket, Key=key)
     md5 = get_md5(event, header, bucket, key)
-    file_id = syn.findEntityId(filename, parent)
+    file_id = syn.findEntityId(filename, parent_id)
 
     if file_id != None:
         targetMD5 = syn.get(file_id, downloadFile=False)['md5'];
@@ -69,7 +68,7 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
                             'key'         : key,
                             'storageLocationId': storage_id}
         fileHandle = syn.restPOST('/externalFileHandle/s3', json.dumps(fileHandle), endpoint=syn.fileHandleEndpoint)
-        f = synapseclient.File(parentId=parent, dataFileHandleId=fileHandle['id'], name=filename, synapseStore=False)
+        f = synapseclient.File(parentId=parent_id, dataFileHandleId=fileHandle['id'], name=filename, synapseStore=False)
         f = syn.store(f)
 
 def get_parent_folder(syn, project_id, key):
