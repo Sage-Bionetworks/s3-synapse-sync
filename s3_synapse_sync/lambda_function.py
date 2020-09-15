@@ -23,7 +23,8 @@ def lambda_handler(event, context):
     filename = os.path.basename(key)
 
     envvars = _get_env_var('BUCKET_VARIABLES')
-    project_id = envvars[bucket]['SynapseProjectId']
+    env_dict = json.loads(envvars)
+    project_id = env_dict[bucket]['SynapseProjectId']
 
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
