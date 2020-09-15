@@ -10,6 +10,7 @@ import mimetypes
 import synapseclient
 import tempfile
 import uuid
+import yaml
 
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
@@ -22,7 +23,7 @@ def lambda_handler(event, context):
     key = unquote_plus(event['Records'][0]['s3']['object']['key'])
     filename = os.path.basename(key)
 
-    envvars = _get_env_var('BUCKET_VARIABLES')
+    envvars = _load_bucket_vars()
     project_id = envvars[bucket]['SynapseProjectId']
 
     ssm_user = '/HTAN/SynapseSync/username'
@@ -145,3 +146,20 @@ def _get_env_var(name):
         raise ValueError(('Lambda configuration error: '
             f'missing environment variable {name}'))
     return value
+
+def _load_yaml(yaml_string, config_name=None):
+    try:
+        output = yaml.safe_load(yaml_string)
+    except yaml.YAMLError as e:
+        error_message = (
+            f'There was an error when attempting to load {config_name}. '
+            f'Error details: {e}'
+        )
+        raise Exception(error_message)
+    return output
+
+def _load_bucket_vars():
+    return _load_yaml(
+        _get_env_var('BUCKET_VARIABLES'),
+        'bucket_variables'
+        )
