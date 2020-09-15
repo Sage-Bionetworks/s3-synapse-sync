@@ -55,18 +55,6 @@ aws ssm put-parameter \
   --key-id alias/s3-synapse-sync-kms-key/kmskey
 ```
 
-#### Environment Variables
-The lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket the ID of the center's Synapse project.
-
-s3-synapse-sync-bucket-vars.yaml:
-```yaml
-htan-dcc-bucket-a:
-  SynapseProjectId: syn11111
-htan-dcc-bucket-b:
-  SynapseProjectId: syn22222
-```
-See [**Note**](#create-buckets) on bucket names
-
 ### Create a local build
 
 ```shell script
@@ -126,7 +114,11 @@ hooks:
   before_launch:
     - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync.yaml --create-dirs -o templates/remote/s3-synapse-sync.yaml"
 parameters:
-  BucketVariables: !file_contents "data/s3-synapse-sync-bucket-vars.yaml"
+  BucketVariables: >-
+    '{
+      "htan-dcc-bucket-a":{"SynapseProjectId":"syn11111"},
+      "htan-dcc-bucket-b":{"SynapseProjectId":"syn22222"}
+      }'
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
 ```
