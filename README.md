@@ -55,28 +55,6 @@ aws ssm put-parameter \
   --key-id alias/s3-synapse-sync-kms-key/kmskey
 ```
 
-#### Environment Variables
-The lambda requires the environment variable `BUCKET_VARIABLES`: a yaml-format string that defines for each HTAN bucket:
-
-- The ID of the center's Synapse project
-- Folders in the bucket to be synced to Synapse
-
-s3-synapse-sync-bucket-vars.yaml:
-```yaml
-htan-dcc-bucket-a:
-  SynapseProjectId: syn11111
-  FoldersToSync:
-    - folderA
-    - folderB
-htan-dcc-bucket-b:
-  SynapseProjectId: syn22222
-  FoldersToSync:
-    - folderA
-    - folderB
-    - folderC
-```
-See [**Note**](#create-buckets) on bucket names
-
 ### Create a local build
 
 ```shell script
@@ -136,10 +114,13 @@ hooks:
   before_launch:
     - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync.yaml --create-dirs -o templates/remote/s3-synapse-sync.yaml"
 parameters:
-  BucketVariables: !file_contents "data/s3-synapse-sync-bucket-vars.yaml"
+  BucketVariables: >-
+    '{
+      "htan-dcc-bucket-a":{"SynapseProjectId":"syn11111"},
+      "htan-dcc-bucket-b":{"SynapseProjectId":"syn22222"}
+      }'
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
-  SynapseCanonicalId: "d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440"
 ```
 
 Install the lambda using sceptre:
@@ -186,15 +167,15 @@ Deploy a 2nd time with `EnableNotificationConfiguration: "true"`
 ---
 
 ### To Use:
-1. Place a file in one of the folders specified in the `foldersToSync` parameter
+1. Place file in folder of S3 bucket
     - Grant the bucket owner full control of the object by including the flag `--acl bucket-owner-full-control`
 
 Example `cp` and `put-object` commands:
 ```
-aws s3 cp test.txt s3://MyBucket/test.txt --acl bucket-owner-full-control
+aws s3 cp test.txt s3://MyBucket/MyFolder/test.txt --acl bucket-owner-full-control
 ```
 ```
-aws s3api put-object --bucket MyBucket --key TestFolder/test.txt --body test.txt --acl bucket-owner-full-control
+aws s3api put-object --bucket MyBucket --key MyFolder/test.txt --body test.txt --acl bucket-owner-full-control
 ```
 
 2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully

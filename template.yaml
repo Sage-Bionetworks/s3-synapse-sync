@@ -5,7 +5,7 @@ Description: >
 
 Parameters:
   BucketVariables:
-    Description: 'Yaml string defining Synapse project ID and folders in bucket to be synced to Synapse'
+    Description: 'String mapping buckets to Synapse project IDs'
     Type: String
   KmsDecryptPolicyArn:
     Description: 'The KMS key policy ARN to access the Synapse service user secrets'

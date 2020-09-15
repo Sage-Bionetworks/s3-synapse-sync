@@ -10,7 +10,6 @@ import mimetypes
 import synapseclient
 import tempfile
 import uuid
-import yaml
 
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
@@ -23,27 +22,29 @@ def lambda_handler(event, context):
     key = unquote_plus(event['Records'][0]['s3']['object']['key'])
     filename = os.path.basename(key)
 
+    envvars = _get_env_var('BUCKET_VARIABLES')
+    project_id = envvars[bucket]['SynapseProjectId']
+
     ssm_user = '/HTAN/SynapseSync/username'
     ssm_api = '/HTAN/SynapseSync/apiKey'
     username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
     apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
 
-    envvars = _load_bucket_vars()
-    project_id = envvars[bucket]['SynapseProjectId']
-    inclFolders = envvars[bucket]['FoldersToSync']
-
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
     syn = synapseclient.Synapse()
     syn.login(email=username,apiKey=apiKey)
 
-    if key.split('/')[0] in inclFolders:
+    if key[0].isdigit() == False:
         if 'ObjectCreated' in eventname:
             create_filehandle(syn, event, filename, bucket, key, project_id)
         elif 'ObjectRemoved' in eventname:
-            delete_file(syn, filename, project_id, key)
+            delete_object(syn, filename, project_id, key)
 
 def create_filehandle(syn, event, filename, bucket, key, project_id):
     parent_id = get_parent_folder(syn, project_id, key)
+    if parent_id == project_id:
+        return   # Do not sync files at the root level
+
     header = s3.head_object(Bucket=bucket, Key=key)
     md5 = get_md5(event, header, bucket, key)
     file_id = syn.findEntityId(filename, parent_id)
@@ -71,23 +72,33 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
         f = synapseclient.File(parentId=parent_id, dataFileHandleId=fileHandle['id'], name=filename, synapseStore=False)
         f = syn.store(f)
 
-def get_parent_folder(syn, project_id, key):
+def get_parent_folder(syn, project_id, key, create_folders=True):
     parent_id = project_id
     folders = key.split('/')
-    fn = folders.pop(-1)
+    folders.pop(-1)
 
-    for f in folders:
-        folder_id = syn.findEntityId(f, parent_id)
-        if folder_id == None:
-            folder_id = syn.store(synapseclient.Folder(name=f, parent=parent_id), forceVersion=False)['id']
-        parent_id = folder_id
+    if folders:
+        for f in folders:
+            folder_id = syn.findEntityId(f, parent_id)
+            if folder_id == None:
+                if not create_folders:
+                    return None
+
+                folder_id = syn.store(synapseclient.Folder(name=f, parent=parent_id), forceVersion=False)['id']
+            parent_id = folder_id
 
     return parent_id
 
-def delete_file(syn, filename, project_id, key):
-    parent_id = get_parent_folder(syn, project_id, key)
-    file_id = syn.findEntityId(filename, parent_id)
-    syn.delete(file_id)
+def delete_object(syn, filename, project_id, key):
+    parent_id = get_parent_folder(syn, project_id, key, False)
+    if parent_id == None:  # Parent folder does not exist on Synapse
+        return
+
+    if not filename:   # Object is a folder
+        syn.delete(parent_id)
+    else:              # Delete file
+        file_id = syn.findEntityId(filename, parent_id)
+        syn.delete(file_id)
 
 def get_md5(event, header, bucket, key):
     """
@@ -128,27 +139,9 @@ def _block_hash(file_obj, blocksize, hash=None):
         hash.update(block)
     return hash
 
-
 def _get_env_var(name):
     value = os.getenv(name)
     if not value:
         raise ValueError(('Lambda configuration error: '
             f'missing environment variable {name}'))
     return value
-
-def _load_yaml(yaml_string, config_name=None):
-    try:
-        output = yaml.safe_load(yaml_string)
-    except yaml.YAMLError as e:
-        error_message = (
-            f'There was an error when attempting to load {config_name}. '
-            f'Error details: {e}'
-        )
-        raise Exception(error_message)
-    return output
-
-def _load_bucket_vars():
-    return _load_yaml(
-        _get_env_var('BUCKET_VARIABLES'),
-        'bucket_variables'
-        )
