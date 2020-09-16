@@ -115,10 +115,10 @@ hooks:
     - !cmd "curl https://{{stack_group_config.admincentral_cf_bucket}}.s3.amazonaws.com/s3-synapse-sync/master/s3-synapse-sync.yaml --create-dirs -o templates/remote/s3-synapse-sync.yaml"
 parameters:
   BucketVariables: >-
-    '{
+    {
       "htan-dcc-bucket-a":{"SynapseProjectId":"syn11111"},
       "htan-dcc-bucket-b":{"SynapseProjectId":"syn22222"}
-      }'
+    }
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
 ```
