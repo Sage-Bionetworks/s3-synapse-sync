@@ -2,9 +2,10 @@ language: python
 python: 3.6
 cache: pip
 env:
-  - REPO_NAME="${PWD##*/}"
-  - LAMBDA_BUCKET="essentials-awss3lambdaartifactsbucket-x29ftznj6pqw"
-  - CFN_BUCKET="bootstrap-awss3cloudformationbucket-19qromfd235z9"
+  global:
+    - REPO_NAME="${PWD##*/}"
+    - LAMBDA_BUCKET="essentials-awss3lambdaartifactsbucket-x29ftznj6pqw"
+    - CFN_BUCKET="bootstrap-awss3cloudformationbucket-19qromfd235z9"
 install:
   - pip install pipenv
   - pipenv install --dev
