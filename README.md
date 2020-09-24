@@ -58,7 +58,7 @@ aws ssm put-parameter \
 ### Create a local build
 
 ```shell script
-$ sam build --use-container
+$ sam build
 ```
 
 ### Run locally
@@ -77,16 +77,12 @@ $ python -m pytest tests/ -v
 
 ## Deployment
 
-### Build
-
-```shell script
-sam build
-```
-
-## Deploy Lambda to S3
-This requires the correct permissions to upload to bucket
+### Deploy Lambda to S3
+Deployments are sent to the
+[Sage cloudformation repository](https://bootstrap-awss3cloudformationbucket-19qromfd235z9.s3.amazonaws.com/index.html)
+which requires permissions to upload to Sage
 `bootstrap-awss3cloudformationbucket-19qromfd235z9` and
-`essentials-awss3lambdaartifactsbucket-x29ftznj6pqw`
+`essentials-awss3lambdaartifactsbucket-x29ftznj6pqw` buckets.
 
 ```shell script
 sam package --template-file .aws-sam/build/template.yaml \
@@ -96,7 +92,29 @@ sam package --template-file .aws-sam/build/template.yaml \
 aws s3 cp .aws-sam/build/s3-synapse-sync.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/s3-synapse-sync/master/
 ```
 
+## Publish Lambda
+
+### Private access
+Publishing the lambda makes it available in your AWS account.  It will be accessible in
+the [serverless application repository](https://console.aws.amazon.com/serverlessrepo).
+
+```shell script
+sam publish --template .aws-sam/build/cfn-cr-synapse-tagger.yaml
+```
+
+### Public access
+Making the lambda publicly accessible makes it available in the
+[global AWS serverless application repository](https://serverlessrepo.aws.amazon.com/applications)
+
+```shell script
+aws serverlessrepo put-application-policy \
+  --application-id <lambda ARN> \
+  --statements Principals=*,Actions=Deploy
+```
+
 ## Install Lambda into AWS
+
+### Sceptre
 Create the following [sceptre](https://github.com/Sceptre/sceptre) file
 
 Create a sceptre s3-synapse-sync.yaml file used to deploy cloudformation
@@ -127,6 +145,17 @@ Install the lambda using sceptre:
 ```shell script
 sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/s3-synapse-sync.yaml
 ```
+
+### AWS Console
+Steps to deploy from AWS console.
+
+1. Login to AWS
+2. Access the
+[serverless application repository](https://console.aws.amazon.com/serverlessrepo)
+-> Available Applications
+3. Select application to install
+4. Enter Application settings
+5. Click Deploy
 
 ---
 ## Create Buckets
