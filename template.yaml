@@ -1,7 +1,23 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  S3 Synapse sync lambda
+Description: >-
+  Lambda function code to index files in S3 buckets by creating filehandles
+  on Synapse, triggered by file changes to S3."
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: "s3-synapse-sync"
+    Description: >-
+      Lambda function code to index files in S3 buckets by creating filehandles
+      on Synapse, triggered by file changes to S3."
+    Author: "Sage-Bionetworks"
+    SpdxLicenseId: "Apache-2.0"
+    LicenseUrl: "LICENSE"
+    ReadmeUrl: "README.md"
+    Labels: ["serverless", "synapse", "storage", "S3"]
+    HomePageUrl: "https://github.com/Sage-Bionetworks/s3-synapse-sync"
+    SemanticVersion: "0.0.1"
+    SourceCodeUrl: "https://github.com/Sage-Bionetworks-IT/s3-synapse-sync/tree/0.0.1"
 
 Parameters:
   BucketVariables:
