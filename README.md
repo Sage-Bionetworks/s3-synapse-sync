@@ -176,7 +176,7 @@ hooks:
 dependencies:
   - "prod/s3-synapse-sync.yaml"
 parameters:
-  BucketName: "htan-dcc-bucket-a"  # must match bucket name in s3-synapse-sync-bucket-vars.yaml
+  BucketName: "htan-dcc-bucket-a"
   SynapseIDs:
     - "1111111"
   S3UserARNs:
