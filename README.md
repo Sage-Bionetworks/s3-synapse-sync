@@ -139,6 +139,7 @@ parameters:
     }
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
+  ObjectReadAccounts: “id=123456789012,emailAddress=user1@example.com” # by default Synapse and the DSA will be given read access to objects in the bucket
 ```
 
 Install the lambda using sceptre:

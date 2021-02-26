@@ -35,6 +35,13 @@ Parameters:
     Default: "d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440"
     ConstraintDescription: >-
       Must be the canonical ID for the AWS Synapse account
+  ObjectReadAccounts:
+    Type: String
+    Description: AWS account canonical IDs or email addresses to be granted object read permission
+    Default: "id=d9df08ac799f2859d42a588b415111314cf66d0ffd072195f33b921db966b440,emailaddress=dagutman@gmail.com"
+    ConstraintDescription: >-
+      List of AWS canonical IDs or emails separated by commas
+      (e.g. id=123456789012,emailAddress=user1@example.com)
 
 Resources:
   S3SynapseLambdaExecute:
@@ -81,6 +88,7 @@ Resources:
         Variables:
           BUCKET_VARIABLES: !Ref BucketVariables
           SYNAPSE_CANONICAL_ID: !Ref SynapseCanonicalId
+          OBJECT_READ_ACCOUNTS: !Ref ObjectReadAccounts
       Timeout: 900
       MemorySize: 320
 

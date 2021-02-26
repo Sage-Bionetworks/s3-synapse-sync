@@ -73,8 +73,8 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
         contentType = mimetypes.guess_type(filename, strict=False)[0]
         storage_id = syn.restGET("/projectSettings/"+project_id+"/type/upload")['locations'][0]
 
-        synapse_canonical_id = _get_env_var('SYNAPSE_CANONICAL_ID')
-        boto3.resource('s3').ObjectAcl(bucket, key).put(GrantRead='id='+synapse_canonical_id)
+        object_read_accs = _get_env_var('OBJECT_READ_ACCOUNTS')
+        boto3.resource('s3').ObjectAcl(bucket, key).put(GrantRead=object_read_accs)
 
         fileHandle = {'concreteType': 'org.sagebionetworks.repo.model.file.S3FileHandle',
                             'fileName'    : filename,
