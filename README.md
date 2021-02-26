@@ -184,6 +184,8 @@ parameters:
     - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
   DenyDeleteARNs:
     - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
+  S3AdminARNs:
+    - "arn:aws:sts::213235685529:assumed-role/sandbox-developer/joe.smith@sagebase.org"
   S3SynapseSyncFunctionArn: !stack_output_external "s3-synapse-sync::FunctionArn"
   S3SynapseSyncFunctionRoleArn: !stack_output_external "s3-synapse-sync::FunctionRoleArn"
 

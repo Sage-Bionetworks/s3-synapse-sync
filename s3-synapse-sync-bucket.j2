@@ -43,6 +43,13 @@ Parameters:
     ConstraintDescription: >-
       List of ARNs separated by commas (e.g.
       arn:aws:iam::011223344556:user/jdoe,arn:aws:iam::544332211006:user/rjones)
+  S3AdminARNs:
+    Type: CommaDelimitedList
+    Description: >-
+      (Optional) User ARNs of S3 bucket admins
+    ConstraintDescription: >-
+      List of ARNs separated by commas (e.g.
+      arn:aws:iam::011223344556:user/jdoe,arn:aws:iam::544332211006:user/rjones)
   BucketName:
     Type: String
     Description: (Optional) Name of the created bucket.
@@ -143,6 +150,14 @@ Resources:
               AWS: !Ref DenyDeleteARNs
             Action:
               - s3:*Delete*
+            Resource: !Sub "${S3Bucket.Arn}/*"
+          -
+            Sid: "AdminAccess"
+            Effect: Allow
+            Principal:
+              AWS: !Ref S3AdminARNs
+            Action:
+              - s3:*
             Resource: !Sub "${S3Bucket.Arn}/*"
 
 
