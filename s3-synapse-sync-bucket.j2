@@ -159,6 +159,15 @@ Resources:
             Action:
               - s3:*
             Resource: !Sub "${S3Bucket.Arn}/*"
+          -
+            Sid: "AdminReadAccess"
+            Effect: "Allow"
+            Principal:
+              AWS: !Ref S3AdminARNs
+            Action:
+              - "s3:ListBucket*"
+              - "s3:GetBucketLocation"
+            Resource: !GetAtt S3Bucket.Arn
 
 
   # Add owner file to the synapse bucket, requires the cloudformation S3 objects macro
