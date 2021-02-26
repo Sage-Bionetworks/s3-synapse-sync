@@ -152,7 +152,7 @@ Resources:
               - s3:*Delete*
             Resource: !Sub "${S3Bucket.Arn}/*"
           -
-            Sid: "AdminAccess"
+            Sid: "AdminBucketObjectAccess"
             Effect: Allow
             Principal:
               AWS: !Ref S3AdminARNs
@@ -160,7 +160,7 @@ Resources:
               - s3:*
             Resource: !Sub "${S3Bucket.Arn}/*"
           -
-            Sid: "AdminReadAccess"
+            Sid: "AdminBucketAccess"
             Effect: "Allow"
             Principal:
               AWS: !Ref S3AdminARNs
