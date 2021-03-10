@@ -76,6 +76,26 @@ $ python -m pytest tests/ -v
 ```
 
 ## Deployment
+### Deploy Docker
+Containerize the python Minerva rendering script and push it to Amazon ECR. 
+1. Make sure [Docker](https://docs.docker.com/get-docker/) is installed
+2. Download this repository
+3. Build and deploy:
+
+```
+cd docker
+
+AWS_ACCOUNT=123456789012 # replace with AWS account ID
+AWS_REGION=us-east-1
+DOCKER_CONTAINER=batch-minerva-image
+
+aws ecr create-repository --repository-name $DOCKER_CONTAINER
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
+
+docker build -t $DOCKER_CONTAINER .
+docker tag $DOCKER_CONTAINER:latest  $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_CONTAINER:latest
+docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_CONTAINER:latest
+```
 
 ### Deploy Lambda to S3
 Deployments are sent to the
@@ -214,3 +234,8 @@ aws s3api put-object --bucket MyBucket --key MyFolder/test.txt --body test.txt -
 
 2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully
 3. Check Synapse project to see if filehandle was created
+
+#### Minerva Story
+The lambda will also run a [Minerva](https://gist.github.com/thejohnhoffer/f6193f079f6efa85befab97194d11984) pre-processing tool to create a JPEG image pyramid and an `exhibit.json` suitable for hosting with Minerva Story. 
+
+Add input OME-TIFF and json (<story_name>.story.json) files to the `minerva` folder in the bucket. Ensure that the image name contained in the `in_file` property of the author json file matches that of the OME-TIFF input file. Output image tiles and exhibit files will be added to the <story_name> directory in the `minerva` folder.

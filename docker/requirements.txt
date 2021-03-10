@@ -1,0 +1,6 @@
+zarr>=2.6.1
+Pillow>=8.1.0
+numpy>=1.19.5
+matplotlib>=3.3.3
+tifffile>=2021.1.14
+awscli
