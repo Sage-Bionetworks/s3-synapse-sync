@@ -211,7 +211,7 @@ Resources:
             --==BOUNDARY==
             Content-Type: text/x-shellscript; charset="us-ascii"
 
-            #!/bin/bash  
+            #!/bin/bash
             mkfs.ext4  /dev/sdb
             (
             echo n # Add a new partition
