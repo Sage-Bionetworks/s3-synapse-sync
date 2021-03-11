@@ -77,7 +77,7 @@ def render_color_tiles(opener, output_dir, tile_size, config_rows, logger, progr
 
             for settings in config_rows:
 
-                group_dir = settings['Group Path'] 
+                group_dir = settings['Group Path']
                 if not (output_path / group_dir).exists():
                     (output_path / group_dir).mkdir(parents=True)
                 output_file = str(output_path / group_dir / filename)
@@ -128,7 +128,7 @@ class Opener:
 
         else:
             self.io = OpenSlide(self.path)
-            self.dz = DeepZoomGenerator(self.io, tile_size=1024, overlap=0, limit_bounds=True) 
+            self.dz = DeepZoomGenerator(self.io, tile_size=1024, overlap=0, limit_bounds=True)
             self.reader = 'openslide'
             self.rgba = True
             self.rgba_type = None
@@ -241,9 +241,9 @@ class Opener:
             return tile
 
     def get_tile(self, num_channels, level, tx, ty, channel_number, fmt=None):
-        
+
         if self.reader == 'tifffile':
- 
+
             if self.is_rgba('3 channel'):
                 tile_0 = self.get_tifffile_tile(num_channels, level, tx, ty, 0)
                 tile_1 = self.get_tifffile_tile(num_channels, level, tx, ty, 1)
@@ -311,7 +311,7 @@ class Opener:
             )):
                 num_channels = self.get_shape()[0]
                 tile = self.get_tifffile_tile(num_channels, level, tx, ty, int(marker), tile_size)
-                
+
                 if (tile.dtype != np.uint16):
                     if tile.dtype == np.uint8:
                         tile = 255 * tile.astype(np.uint16)
@@ -358,16 +358,16 @@ def deduplicate(data_name, data_dict, data_dir):
     basename = data_name
     local_path = os.path.join(data_dir, basename)
     while local_path in data_dict.values():
-        root, ext = os.path.splitext(basename) 
+        root, ext = os.path.splitext(basename)
         local_path = os.path.join(data_dir, f'{root}-{n_dups}{ext}')
         n_dups += 1
     return local_path
 
 def deduplicate_dicts(dicts, data_dir='', in_key='label', out_key='label', is_dir=False):
     """
-    Map dictionaries by key to unique labels 
+    Map dictionaries by key to unique labels
     Args:
-        dicts: list of dicts containing input key and output key 
+        dicts: list of dicts containing input key and output key
         data_dir: the full path of the destination directory
         in_key: used for key of output dictionary
         out_key: used for values of output dictionary
@@ -383,7 +383,7 @@ def deduplicate_dicts(dicts, data_dir='', in_key='label', out_key='label', is_di
 
 def dedup_label_to_path(dicts, data_dir=''):
     return deduplicate_dicts(dicts, data_dir, 'label', 'label', True)
-  
+
 def group_path_from_label(group_data, label, data_dir=''):
     return dedup_label_to_path(group_data, data_dir)[label]
 
@@ -399,7 +399,7 @@ def make_rows(d):
     for group in d:
         channels = group['channels']
         yield {
-            'Group Path': make_group_path(d, group), 
+            'Group Path': make_group_path(d, group),
             'Channel Number': [str(c['id']) for c in channels],
             'Low': [int(65535 * c['min']) for c in channels],
             'High': [int(65535 * c['max']) for c in channels],
@@ -487,7 +487,7 @@ def main(ome_tiff, author_json, output_dir, root_url, force=False):
    ch.setLevel(logging.DEBUG)
    ch.setFormatter(FORMATTER)
    logger.addHandler(ch)
-   
+
    opener = None
    saved = None
 
@@ -498,7 +498,7 @@ def main(ome_tiff, author_json, output_dir, root_url, force=False):
        logger.error(f'Invalid ome-tiff file: cannot parse {ome_tiff}')
        return
 
-   try: 
+   try:
        with open(author_json) as json_file:
            saved = json.load(json_file)
        groups = saved['groups']

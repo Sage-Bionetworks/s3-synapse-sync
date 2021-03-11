@@ -39,7 +39,7 @@ def lambda_handler(event, context):
     eventname = event['Records'][0]['eventName']
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = unquote_plus(event['Records'][0]['s3']['object']['key'])
-    
+
     filename = os.path.basename(key)
     dirname = os.path.dirname(key)
     filepath = bucket+'/'+dirname
@@ -57,14 +57,14 @@ def lambda_handler(event, context):
         else:
             submit_batch_job(input_tiff,filename,filepath)
     elif dirname == prefix and (key.endswith('ome.tif') or key.endswith('ome.tiff')):
-        story_json = get_story_json(bucket,filename,prefix) 
+        story_json = get_story_json(bucket,filename,prefix)
         for json in story_json:
             input_json = os.path.basename(json)
             submit_batch_job(filename,input_json,filepath)
-    
+
     sync_to_synapse(bucket,event,eventname,filename,key)
 
-def tiff_in_file(bucket,key): 
+def tiff_in_file(bucket,key):
     """
     Read story.json file to get name of corresponding ome-tiff image
     """
@@ -72,10 +72,10 @@ def tiff_in_file(bucket,key):
     file_content = content_object.get()['Body'].read().decode('utf-8')
     json_content = json.loads(file_content)
     in_file = os.path.basename(json_content['in_file'].replace('\\',os.sep))
-    
+
     return in_file
 
-def get_story_json(bucket,filename,prefix): 
+def get_story_json(bucket,filename,prefix):
     story_json = []
 
     file_list = s3.list_objects_v2(Bucket=bucket,Prefix=prefix)
@@ -84,14 +84,14 @@ def get_story_json(bucket,filename,prefix):
         if file.endswith('story.json'):
             tiff_name = tiff_in_file(bucket,file)
             if tiff_name == filename:
-                story_json.append(file) 
-                
+                story_json.append(file)
+
     return story_json
 
 def submit_batch_job(input_tiff,input_json,filepath):
     response = batch.submit_job(jobName=re.sub('[^0-9a-zA-Z]+', '-', input_json)+'-batch-minerva-processor',
                                 jobQueue=_get_env_var('JOB_QUEUE'),
-                                jobDefinition=_get_env_var('JOB_DEFINITION'), 
+                                jobDefinition=_get_env_var('JOB_DEFINITION'),
                                 containerOverrides={
                                     "environment": [
                                         {"name": "INPUT_TIFF", "value": input_tiff},
@@ -99,7 +99,7 @@ def submit_batch_job(input_tiff,input_json,filepath):
                                         {"name": "DIR_NAME", "value": filepath}
                                     ]
                                 })
-    
+
     print("Job ID is {}.".format(response['jobId']))
 
 def sync_to_synapse(bucket,event,eventname,filename,key):

@@ -2,7 +2,7 @@
 
 IMAGE_S3_URL="s3://${DIR_NAME}/${INPUT_TIFF}"
 STORY_S3_URL="s3://${DIR_NAME}/${INPUT_JSON}"
-OUTPUT_DIR="${INPUT_JSON%.*}" 
+OUTPUT_DIR="${INPUT_JSON%.*}"
 
 error_exit () {
   echo "${BASENAME} - ${1}" >&2
