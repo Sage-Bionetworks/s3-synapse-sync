@@ -211,7 +211,7 @@ Resources:
             --==BOUNDARY==
             Content-Type: text/x-shellscript; charset="us-ascii"
 
-            #!/bin/bash          
+            #!/bin/bash  
             mkfs.ext4  /dev/sdb
             (
             echo n # Add a new partition
@@ -225,7 +225,7 @@ Resources:
             mkdir /data
             echo " /dev/xvdb1       /data  ext4    defaults        0       2" >> /etc/fstab
             mount -a
-            service docker restart 
+            service docker restart
 
             --==BOUNDARY==
 
