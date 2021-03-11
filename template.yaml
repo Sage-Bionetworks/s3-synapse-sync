@@ -180,12 +180,12 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Effect: Allow
-          Principal:
-            Service: batch.amazonaws.com
-          Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service: batch.amazonaws.com
+            Action: sts:AssumeRole
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+        - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
 
   ComputeLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -204,7 +204,7 @@ Resources:
               VolumeSize: 150
               VolumeType: "gp2"
         UserData:
-         "Fn::Base64": !Sub |
+          Fn::Base64: !Sub |
             MIME-Version: 1.0
             Content-Type: multipart/mixed; boundary="==BOUNDARY=="
 
@@ -230,7 +230,6 @@ Resources:
             --==BOUNDARY==
 
   JobQueue:
-    DependsOn: ComputeEnvironment
     Type: "AWS::Batch::JobQueue"
     Properties:
       ComputeEnvironmentOrder:
@@ -316,8 +315,8 @@ Resources:
       GroupDescription: "Inbound security group for SSH on Batch EC2 instance"
       SecurityGroupIngress:
         - IpProtocol: "tcp"
-          FromPort: "22"
-          ToPort: "22"
+          FromPort: 22
+          ToPort: 22
           CidrIp: !Ref CIDR
       Tags:
         - Key: "Name"
