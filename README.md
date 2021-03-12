@@ -77,7 +77,7 @@ $ python -m pytest tests/ -v
 
 ## Deployment
 ### Deploy Docker
-Containerize the python Minerva rendering script and push it to Amazon ECR. 
+Containerize the python Minerva rendering script and push it to Amazon ECR.
 1. Make sure [Docker](https://docs.docker.com/get-docker/) is installed
 2. Download this repository
 3. Build and deploy:
@@ -236,6 +236,6 @@ aws s3api put-object --bucket MyBucket --key MyFolder/test.txt --body test.txt -
 3. Check Synapse project to see if filehandle was created
 
 #### Minerva Story
-The lambda will also run a [Minerva](https://gist.github.com/thejohnhoffer/f6193f079f6efa85befab97194d11984) pre-processing tool to create a JPEG image pyramid and an `exhibit.json` suitable for hosting with Minerva Story. 
+The lambda will also run a [Minerva](https://gist.github.com/thejohnhoffer/f6193f079f6efa85befab97194d11984) pre-processing tool to create a JPEG image pyramid and an `exhibit.json` suitable for hosting with Minerva Story.
 
 Add input OME-TIFF and json (<story_name>.story.json) files to the `minerva` folder in the bucket. Ensure that the image name contained in the `in_file` property of the author json file matches that of the OME-TIFF input file. Output image tiles and exhibit files will be added to the <story_name> directory in the `minerva` folder.

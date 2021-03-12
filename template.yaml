@@ -151,7 +151,7 @@ Resources:
     Type: "AWS::Batch::ComputeEnvironment"
     Properties:
       Type: MANAGED
-      ServiceRole: !Ref BatchServiceRole
+      ServiceRole: !GetAtt BatchServiceRole.Arn
       ComputeEnvironmentName: !Join
         - '-'
         - - !Ref AWS::StackName
@@ -186,6 +186,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+      Path: "/"
 
   ComputeLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -204,9 +205,9 @@ Resources:
               VolumeSize: 150
               VolumeType: "gp2"
         UserData:
-          Fn::Base64: !Sub |
-            MIME-Version: 1.0
+          Fn::Base64: |
             Content-Type: multipart/mixed; boundary="==BOUNDARY=="
+            MIME-Version: 1.0
 
             --==BOUNDARY==
             Content-Type: text/x-shellscript; charset="us-ascii"
@@ -227,7 +228,7 @@ Resources:
             mount -a
             service docker restart
 
-            --==BOUNDARY==
+            --==BOUNDARY==--
 
   JobQueue:
     Type: "AWS::Batch::JobQueue"
