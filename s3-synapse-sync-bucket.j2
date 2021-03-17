@@ -74,6 +74,9 @@ Resources:
             MaxAge: 3000
        # LambdaBucketPermission must be setup before NotificationConfiguration
        # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
     {% if sceptre_user_data.EnableNotificationConfiguration.lower() == 'true' %}
       NotificationConfiguration:
         LambdaConfigurations:
