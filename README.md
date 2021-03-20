@@ -77,25 +77,17 @@ $ python -m pytest tests/ -v
 
 ## Deployment
 ### Deploy Docker
-Containerize the python Minerva rendering script and push it to Amazon ECR.
+Containerize the python Minerva rendering script.
 1. Make sure [Docker](https://docs.docker.com/get-docker/) is installed
 2. Download this repository
-3. Build and deploy:
+3. Build:
 
 ```
 cd docker
-
-AWS_ACCOUNT=123456789012 # replace with AWS account ID
-AWS_REGION=us-east-1
-DOCKER_CONTAINER=batch-minerva-image
-
-aws ecr create-repository --repository-name $DOCKER_CONTAINER
-aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
-
-docker build -t $DOCKER_CONTAINER .
-docker tag $DOCKER_CONTAINER:latest  $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_CONTAINER:latest
-docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_CONTAINER:latest
+docker build -t <image_name> .
 ```
+
+4. Tag the build and push image to repository
 
 ### Deploy Lambda to S3
 Deployments are sent to the

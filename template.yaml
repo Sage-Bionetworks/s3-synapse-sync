@@ -43,10 +43,8 @@ Parameters:
       List of AWS canonical IDs or emails separated by commas
       (e.g. id=123456789012,emailAddress=user1@example.com)
   DockerImage:
-    Description: The name of the Docker image in AWS ECR
+    Description: Name of Docker image
     Type: String
-    ConstraintDescription: >-
-      Must be name of Docker image in ECR (e.g. batch-minerva-image)
   CIDR:
     Description: Allow inbound traffic to the cluster from this CIDR range
     Type: String
@@ -108,8 +106,10 @@ Resources:
         Statement:
         - Effect: Allow
           Action:
-           - batch:SubmitJob
-          Resource: "arn:aws:batch:*:*:*"
+            - batch:SubmitJob
+          Resource:
+            - !Ref Job
+            - !Ref JobQueue
 
   Function:
     Type: AWS::Serverless::Function
@@ -152,12 +152,6 @@ Resources:
     Properties:
       Type: MANAGED
       ServiceRole: !GetAtt BatchServiceRole.Arn
-      ComputeEnvironmentName: !Join
-        - '-'
-        - - !Ref AWS::StackName
-          - "batch"
-          - "compute"
-          - "environment"
       ComputeResources:
         MaxvCpus: 128
         SecurityGroupIds:
@@ -191,11 +185,6 @@ Resources:
   ComputeLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: !Join
-        - '-'
-        - - !Ref AWS::StackName
-          - "launch"
-          - "template"
       LaunchTemplateData:
         BlockDeviceMappings:
           - DeviceName:  '/dev/sdb'
@@ -238,28 +227,18 @@ Resources:
           ComputeEnvironment: !Ref ComputeEnvironment
       State: ENABLED
       Priority: 1
-      JobQueueName: !Join
-        - '-'
-        - - !Ref AWS::StackName
-          - "job"
-          - "queue"
 
   Job:
     Type: "AWS::Batch::JobDefinition"
     Properties:
       Type: container
-      JobDefinitionName: !Join
-        - '-'
-        - - !Ref AWS::StackName
-          - "batch"
-          - "processor"
       ContainerProperties:
         Memory: 4096
         Privileged: false
         JobRoleArn: !Ref JobRole
         ReadonlyRootFilesystem: false
         Vcpus: 1
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/${DockerImage}"
+        Image: !Ref DockerImage
         MountPoints:
           - ContainerPath: "/data"
             ReadOnly: false
@@ -319,9 +298,6 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: !Ref CIDR
-      Tags:
-        - Key: "Name"
-          Value: !Sub '${AWS::StackName}-batch-sg'
 
 Outputs:
   FunctionArn:

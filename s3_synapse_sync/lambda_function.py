@@ -57,9 +57,9 @@ def lambda_handler(event, context):
         else:
             submit_batch_job(input_tiff,filename,filepath)
     elif dirname == prefix and (key.endswith('ome.tif') or key.endswith('ome.tiff')):
-        story_json = get_story_json(bucket,filename,prefix)
-        for json in story_json:
-            input_json = os.path.basename(json)
+        story_json_files = get_story_json(bucket,filename,prefix)
+        for file in story_json_files:
+            input_json = os.path.basename(file)
             submit_batch_job(filename,input_json,filepath)
 
     sync_to_synapse(bucket,event,eventname,filename,key)
