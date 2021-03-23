@@ -87,7 +87,7 @@ cd docker
 docker build -t <image_name> .
 ```
 
-4. Tag the build and push image to repository
+4. Tag the build and push image to registry
 
 ### Deploy Lambda to S3
 Deployments are sent to the
@@ -152,6 +152,9 @@ parameters:
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
   ObjectReadAccounts: “id=123456789012,emailAddress=user1@example.com” # by default Synapse and the DSA will be given read access to objects in the bucket
+  DockerImage: "registry/repository:tag"
+  Subnets: "subnet-1a2b3c4d,subnet-1a2b3c4d"
+  VpcID: "vpc-1a2b3c4d"
 ```
 
 Install the lambda using sceptre:

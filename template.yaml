@@ -59,6 +59,10 @@ Parameters:
   VpcID:
     Type: AWS::EC2::VPC::Id
     Description: The vpc within which to place EC2 AutoScaling Group
+  AMI:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: Use an Image from SSM Parameter Store
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
 
 Resources:
   S3BucketAccess:
@@ -158,6 +162,7 @@ Resources:
           - !Ref SecurityGroup
         Type: EC2
         Subnets: !Ref Subnets
+        ImageId: !Ref AMI
         MinvCpus: 0
         InstanceRole: !Ref ECSInstanceProfile
         InstanceTypes:
