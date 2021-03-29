@@ -16,7 +16,7 @@ Metadata:
     ReadmeUrl: "README.md"
     Labels: ["serverless", "synapse", "storage", "S3"]
     HomePageUrl: "https://github.com/Sage-Bionetworks/s3-synapse-sync"
-    SemanticVersion: "0.0.1"
+    SemanticVersion: "1.1"
     SourceCodeUrl: "https://github.com/Sage-Bionetworks-IT/s3-synapse-sync/tree/0.0.1"
 
 Parameters:
