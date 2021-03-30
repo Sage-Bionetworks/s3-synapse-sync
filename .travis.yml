@@ -31,7 +31,6 @@ jobs:
           sam package --template-file .aws-sam/build/template.yaml \
             --s3-bucket $LAMBDA_BUCKET \
             --output-template-file .aws-sam/build/$REPO_NAME.yaml
-        - sam publish --template .aws-sam/build/$REPO_NAME.yaml
         - aws s3 cp .aws-sam/build/$REPO_NAME.yaml s3://$CFN_BUCKET/$REPO_NAME/$TRAVIS_BRANCH/
         - aws s3 cp s3-synapse-sync-bucket.j2 s3://$CFN_BUCKET/$REPO_NAME/$TRAVIS_BRANCH/
         - aws s3 cp s3-synapse-sync-kms-key.yaml s3://$CFN_BUCKET/$REPO_NAME/$TRAVIS_BRANCH/
