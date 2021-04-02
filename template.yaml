@@ -151,7 +151,7 @@ Resources:
         MinvCpus: 0
         InstanceRole: !Ref ECSInstanceProfile
         InstanceTypes:
-          - optimal
+          - d3.xlarge
         LaunchTemplate:
           LaunchTemplateId: !Ref ComputeLaunchTemplate
           Version: !GetAtt ComputeLaunchTemplate.LatestVersionNumber
@@ -178,11 +178,7 @@ Resources:
       LaunchTemplateData:
         BlockDeviceMappings:
           - DeviceName:  '/dev/sdb'
-            Ebs:
-              DeleteOnTermination: true
-              Encrypted: true
-              VolumeSize: 150
-              VolumeType: "gp2"
+            VirtualName: ephemeral0
         UserData:
           Fn::Base64: |
             Content-Type: multipart/mixed; boundary="==BOUNDARY=="
@@ -192,19 +188,9 @@ Resources:
             Content-Type: text/x-shellscript; charset="us-ascii"
 
             #!/bin/bash
-            mkfs.ext4  /dev/sdb
-            (
-            echo n # Add a new partition
-            echo p # Primary partition
-            echo 1 # Partition number
-            echo   # First sector (Accept default: 1)
-            echo   # Last sector (Accept default: varies)
-            echo w # Write changes
-            ) | fdisk  /dev/sdb
-            mkfs.ext4  /dev/xvdb1
+            mkfs -t xfs /dev/nvme1n1
             mkdir /data
-            echo " /dev/xvdb1       /data  ext4    defaults        0       2" >> /etc/fstab
-            mount -a
+            mount /dev/nvme1n1 /data
             service docker restart
 
             --==BOUNDARY==--
@@ -238,7 +224,7 @@ Resources:
             Host:
               SourcePath: "/data"
       RetryStrategy:
-        Attempts: 1
+        Attempts: 3
 
   JobRole:
     Type: "AWS::IAM::Role"

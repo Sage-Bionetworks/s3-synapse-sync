@@ -26,3 +26,7 @@ aws s3 cp "${OUTPUT_DIR}/" "s3://${DIR_NAME}/${OUTPUT_DIR}" --recursive --acl bu
 
 echo "Uploading index.html to S3"
 aws s3 cp /usr/local/bin/index.html "s3://${DIR_NAME}/${OUTPUT_DIR}/index.html" --acl bucket-owner-full-control || error_exit "Failed to upload index.html to S3."
+
+#clean up TIFF image and output directory
+rm "${INPUT_TIFF}"
+rm -r "${OUTPUT_DIR}/"
