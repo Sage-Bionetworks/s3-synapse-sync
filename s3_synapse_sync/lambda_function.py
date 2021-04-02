@@ -139,9 +139,6 @@ def create_filehandle(syn, event, filename, bucket, key, project_id):
         contentType = mimetypes.guess_type(filename, strict=False)[0]
         storage_id = syn.restGET("/projectSettings/"+project_id+"/type/upload")['locations'][0]
 
-        object_read_accs = _get_env_var('OBJECT_READ_ACCOUNTS')
-        s3_resource.ObjectAcl(bucket, key).put(GrantRead=object_read_accs)
-
         fileHandle = {'concreteType': 'org.sagebionetworks.repo.model.file.S3FileHandle',
                             'fileName'    : filename,
                             'contentSize' : size,
