@@ -76,6 +76,18 @@ $ python -m pytest tests/ -v
 ```
 
 ## Deployment
+### Deploy Docker
+Containerize the python Minerva rendering script.
+1. Make sure [Docker](https://docs.docker.com/get-docker/) is installed
+2. Download this repository
+3. Build:
+
+```
+cd docker
+docker build -t <image_name> .
+```
+
+4. Tag the build and push image to registry
 
 ### Deploy Lambda to S3
 Deployments are sent to the
@@ -139,7 +151,9 @@ parameters:
     }
   KmsDecryptPolicyArn: !stack_output_external "s3-synapse-sync-kms-key::KmsDecryptPolicyArn"
   BucketNamePrefix: "htan-dcc-*"
-  ObjectReadAccounts: “id=123456789012,emailAddress=user1@example.com” # by default Synapse and the DSA will be given read access to objects in the bucket
+  DockerImage: "registry/repository:tag"
+  Subnets: "subnet-1a2b3c4d,subnet-1a2b3c4d"
+  VpcID: "vpc-1a2b3c4d"
 ```
 
 Install the lambda using sceptre:
@@ -214,3 +228,8 @@ aws s3api put-object --bucket MyBucket --key MyFolder/test.txt --body test.txt -
 
 2. Check CloudWatch logs for the Lambda function to see if the function was triggered and completed successfully
 3. Check Synapse project to see if filehandle was created
+
+#### Minerva Story
+The lambda will also run a [Minerva](https://gist.github.com/thejohnhoffer/f6193f079f6efa85befab97194d11984) pre-processing tool to create a JPEG image pyramid and an `exhibit.json` suitable for hosting with Minerva Story.
+
+Add input OME-TIFF and json (<story_name>.story.json) files to the `minerva` folder in the bucket. Ensure that the image name contained in the `in_file` property of the author json file matches that of the OME-TIFF input file. Output image tiles and exhibit files will be added to the <story_name> directory in the `minerva` folder.
