@@ -26,7 +26,7 @@ Parameters:
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
   Subnets:
-    Type: List<AWS::EC2::Subnet::Id>
+    Type: List<String>
     Description: Subnets for Autoscaling Group. Please select at least 2.
   VpcID:
     Type: AWS::EC2::VPC::Id
