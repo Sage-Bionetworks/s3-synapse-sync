@@ -127,6 +127,14 @@ Resources:
               - "s3:*MultipartUpload*"
             Resource: !Sub "${S3Bucket.Arn}/*"
           -
+            Sid: "BucketPolicyAccess"
+            Effect: "Allow"
+            Principal:
+              AWS: !Ref S3UserARNs
+            Action:
+              - "s3:GetBucketPolicy"
+            Resource: !GetAtt S3Bucket.Arn
+          -
             Sid: "LambdaAccess"
             Effect: Allow
             Principal:
