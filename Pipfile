@@ -15,4 +15,4 @@ aws-sam-cli = "<2,>=1.1"
 synapseclient = "<3,>=2.1"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"
