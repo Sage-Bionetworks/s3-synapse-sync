@@ -8,6 +8,7 @@ env:
     - LAMBDA_BUCKET="essentials-awss3lambdaartifactsbucket-x29ftznj6pqw"
     - CFN_BUCKET="bootstrap-awss3cloudformationbucket-19qromfd235z9"
 install:
+  - pip install wheel
   - pip install pipenv
   - pipenv install --dev
   - wget https://github.com/Sage-Bionetworks/infra-utils/archive/master.zip -O /tmp/infra-utils.zip
