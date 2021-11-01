@@ -1,2 +1,2 @@
 synapseclient>=2.1,<3
-pyyaml
+pyyaml>=5.4,<6
