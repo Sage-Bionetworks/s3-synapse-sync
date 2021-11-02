@@ -178,6 +178,7 @@ Resources:
             Action:
               - "s3:ListBucket*"
               - "s3:GetBucketLocation"
+              - "s3:GetBucketPolicy"
             Resource: !GetAtt S3Bucket.Arn
 
 
