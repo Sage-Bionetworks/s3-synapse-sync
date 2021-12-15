@@ -74,7 +74,7 @@ Resources:
             MaxAge: 3000
       OwnershipControls:
         Rules:
-          - ObjectOwnership: BucketOwnerPreferred
+          - ObjectOwnership: BucketOwnerEnforced
        # LambdaBucketPermission must be setup before NotificationConfiguration
        # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
     {% if sceptre_user_data.EnableNotificationConfiguration.lower() == 'true' %}
@@ -127,14 +127,6 @@ Resources:
               - "s3:*MultipartUpload*"
             Resource: !Sub "${S3Bucket.Arn}/*"
           -
-            Sid: "BucketPolicyAccess"
-            Effect: "Allow"
-            Principal:
-              AWS: !Ref S3UserARNs
-            Action:
-              - "s3:GetBucketPolicy"
-            Resource: !GetAtt S3Bucket.Arn
-          -
             Sid: "LambdaAccess"
             Effect: Allow
             Principal:
@@ -144,16 +136,6 @@ Resources:
               - s3:PutObject
               - s3:PutObjectAcl
             Resource: !Sub "${S3Bucket.Arn}/*"
-          -
-            Sid: "Require canonical ID on object updates"
-            Effect: Deny
-            Principal:
-              AWS: !Ref S3UserARNs
-            Action: s3:PutObject
-            Resource: !Sub "${S3Bucket.Arn}/*"
-            Condition:
-              StringNotEquals:
-                s3:x-amz-acl: bucket-owner-full-control
           -
             Sid: "DenyDeleteObject"
             Effect: Deny
@@ -178,7 +160,6 @@ Resources:
             Action:
               - "s3:ListBucket*"
               - "s3:GetBucketLocation"
-              - "s3:GetBucketPolicy"
             Resource: !GetAtt S3Bucket.Arn
 
 
