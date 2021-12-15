@@ -178,7 +178,6 @@ Resources:
         Bucket: !Ref S3Bucket
         Key: owner.txt
         ContentType: text
-        ACL: authenticated-read
       Body: !Sub
         - "${list}"
         - list: !Join [",",!Ref "SynapseIDs"]
