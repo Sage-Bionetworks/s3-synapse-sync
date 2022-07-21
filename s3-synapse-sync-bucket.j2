@@ -158,8 +158,7 @@ Resources:
             Principal:
               AWS: !Ref S3AdminARNs
             Action:
-              - "s3:ListBucket*"
-              - "s3:GetBucketLocation"
+              - s3:*
             Resource: !GetAtt S3Bucket.Arn
 
 
