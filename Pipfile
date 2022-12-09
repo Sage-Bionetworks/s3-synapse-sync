@@ -4,10 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-#pylint = "~=2.5"
-pytest = "~=6.0"
-pytest-mock = "~=3.3"
-responses = "~=0.22"
+boto3 = "~=1.17"
+pre-commit = "~=2.20"
 
 [packages]
 synapseclient = ">=2.1,<3"
