@@ -33,7 +33,6 @@ jobs:
       script:
         - pipenv run pre-commit run --all-files
         - pipenv run sam build
-#        - pipenv run python -m pytest tests/ -v
     - stage: deploy
       script:
         - pipenv run sam build
@@ -41,7 +40,6 @@ jobs:
           pipenv run sam package --template-file .aws-sam/build/template.yaml \
             --s3-bucket $LAMBDA_BUCKET \
             --output-template-file .aws-sam/build/$REPO_NAME.yaml
-        - pipenv run sam publish --template .aws-sam/build/$REPO_NAME.yaml
         - pipenv run aws s3 cp .aws-sam/build/$REPO_NAME.yaml s3://$CFN_BUCKET/$REPO_NAME/$TRAVIS_BRANCH/
         - pipenv run aws s3 cp s3-synapse-sync-bucket.j2 s3://$CFN_BUCKET/$REPO_NAME/$TRAVIS_BRANCH/
         - pipenv run aws s3 cp s3-synapse-sync-kms-key.yaml s3://$CFN_BUCKET/$REPO_NAME/$TRAVIS_BRANCH/
