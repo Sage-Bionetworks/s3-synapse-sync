@@ -16,7 +16,7 @@ install:
   - mkdir -p /tmp/awssamcli
   - curl -L "https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip" -o "/tmp/awssamcli/awssamcli.zip"
   - pushd /tmp/awssamcli && unzip ./awssamcli.zip && sudo ./install && popd
-  - pip install pipenv
+  - pip install pipenv pre-commit
   - pipenv install --dev
 before_script:
   - mkdir -p ~/.aws
