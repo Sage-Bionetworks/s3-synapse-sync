@@ -54,6 +54,35 @@ Parameters:
     Type: String
     Description: (Optional) Name of the created bucket.
     Default: ""
+  EnableDataLifeCycle:
+    Type: String
+    Description: Enabled to enable bucket lifecycle rule, default is Disabled
+    AllowedValues:
+      - Enabled
+      - Disabled
+    Default: Disabled
+  LifecycleDataTransition:
+    Type: Number
+    Description: Number of days until S3 objects are moved to LifecycleDataStorageClass
+    Default: 30
+    MaxValue: 360
+    MinValue: 1
+  LifecycleDataStorageClass:
+    Type: String
+    Description: S3 bucket objects will transition into this storage class
+    AllowedValues:
+      - DEEP_ARCHIVE
+      - INTELLIGENT_TIERING
+      - STANDARD_IA
+      - ONEZONE_IA
+      - GLACIER
+    Default: GLACIER
+  LifecycleDataExpiration:
+    Type: Number
+    Description: Number of days (from creation) when objects are deleted from S3 and the LifecycleDataStorageClass
+    Default: 365000
+    MaxValue: 365000
+    MinValue: 360
 Conditions:
   HasBucketName: !Not [!Equals [!Ref BucketName, ""]]
 Resources:
@@ -72,6 +101,14 @@ Resources:
             AllowedOrigins: ['*']
             AllowedMethods: [GET, POST, PUT, HEAD]
             MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+        - Id: DataLifecycleRule
+          Status: !Ref EnableDataLifeCycle
+          ExpirationInDays: !Ref LifecycleDataExpiration
+          Transitions:
+            - TransitionInDays: !Ref LifecycleDataTransition
+              StorageClass: !Ref LifecycleDataStorageClass
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
