@@ -1,0 +1,24 @@
+name: sam-build
+
+runs:
+  # This creates a composite action to be used as a step in a job
+  # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+  using: "composite"
+  steps:
+    # Convert Pipfile.lock to requirements.txt for sam
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    - run: pip install -U pipenv
+      shell: bash
+    - run: pipenv requirements > requirements.txt
+      shell: bash
+
+    # Install aws-sam-cli
+    - uses: aws-actions/setup-sam@v2
+      with:
+        use-installer: true
+
+    # Use a lambda-like docker container to build the lambda artifact
+    - run: sam build --use-container
+      shell: bash
