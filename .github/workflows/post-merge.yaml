@@ -1,0 +1,46 @@
+name: post-merge
+
+on:
+  # Run on merges to master or tag pushes
+  push:
+    branches: [ 'master' ]
+    tags: [ '*' ]
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  lambda-test:
+    uses: "./.github/workflows/test.yaml"
+
+  package-and-publish:
+    runs-on: ubuntu-latest
+    needs: lambda-test
+    permissions:
+      id-token: write
+    env:
+      BOOTSTRAP_BUCKET: bootstrap-awss3cloudformationbucket-19qromfd235z9
+      ESSENTIALS_BUCKET: essentials-awss3lambdaartifactsbucket-x29ftznj6pqw
+    steps:
+      - uses: actions/checkout@v3
+
+      # Install sam-cli and run "sam build"
+      - uses: ./.github/actions/sam-build
+
+      # authenticate with AWS via OIDC
+      - uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::745159704268:role/sagebase-github-oidc-lambda-template-deploy-sageit
+          role-session-name: GitHubActions-${{ github.repository_owner }}-${{ github.event.repository.name }}-${{ github.run_id }}
+          role-duration-seconds: 900
+
+      # upload the lambda artifact to s3 and generate a cloudformation template referencing it
+      - run: sam package --template-file .aws-sam/build/template.yaml --s3-bucket $ESSENTIALS_BUCKET --s3-prefix ${{ github.event.repository.name }}/${{ github.ref_name }} --output-template-file .aws-sam/build/${{ github.event.repository.name }}.yaml
+
+      # upload the generated cloudformation template to s3
+      - run: aws s3 cp .aws-sam/build/${{ github.event.repository.name }}.yaml s3://$BOOTSTRAP_BUCKET/${{ github.event.repository.name }}/${{ github.ref_name }}/
+
+      # upload additional files
+      - run: aws s3 cp s3-synapse-sync-bucket.j2 s3://$BOOTSTRAP_BUCKET/${{ github.event.repository.name }}/${{ github.ref_name }}/
+      - run: aws s3 cp s3-synapse-sync-kms-key.yaml s3://$BOOTSTRAP_BUCKET/${{ github.event.repository.name }}/${{ github.ref_name }}/
