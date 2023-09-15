@@ -13,20 +13,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.8
       - uses: pre-commit/action@v3.0.0
 
-  pytest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-      - run: pip install -U pipenv
-      - run: pipenv install --dev
-      - run: pipenv run python3 -m pytest tests/ -vv
+# This project doesn't have any tests
+#  pytest:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: 3.8
+#      - run: pip install -U pipenv
+#      - run: pipenv install --dev
+#      - run: pipenv run python3 -m pytest tests/ -vv
 
   sam-build-and-lint:
     runs-on: ubuntu-latest
