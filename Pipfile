@@ -8,7 +8,7 @@ boto3 = "~=1.17"
 
 [packages]
 synapseclient = ">=2.1,<3"
-pyyaml = ">=5.4,<6"
+pyyaml = "~=6.0"
 
 [requires]
-python_version = "3.8"
+python_version = "3.11"
