@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 boto3 = "~=1.17"
+aws-sam-cli = "~=1.126"
 
 [packages]
 synapseclient = ">=2.1,<3"
