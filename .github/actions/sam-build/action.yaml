@@ -15,7 +15,7 @@ runs:
       shell: bash
 
     # Install aws-sam-cli
-    - uses: aws-actions/setup-sam@v2
+    - uses: aws-actions/setup-sam@v3
       with:
         use-installer: true
 
