@@ -9,6 +9,8 @@ runs:
     - uses: actions/setup-python@v4
       with:
         python-version: 3.11
+    - run: pip install --upgrade pip
+      shell: bash
     - run: pip install -U pipenv
       shell: bash
     - run: pipenv requirements > requirements.txt
