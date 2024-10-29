@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    python3.8 \
+    python3.10 \
     python3-pip \
     openslide-tools \
     python3-openslide

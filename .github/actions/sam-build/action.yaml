@@ -8,7 +8,7 @@ runs:
     # Convert Pipfile.lock to requirements.txt for sam
     - uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.10
     - run: pip install -U pipenv
       shell: bash
     - run: pipenv requirements > requirements.txt
