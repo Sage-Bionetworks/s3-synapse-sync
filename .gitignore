@@ -133,3 +133,9 @@ dmypy.json
 
 # generated dynamically from Pipfile
 requirements.txt
+
+# mac files
+.DS_Store
+
+# AWS SAM
+.aws-sam/
