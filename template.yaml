@@ -92,7 +92,7 @@ Resources:
     Properties:
       CodeUri: s3_synapse_sync/
       Handler: lambda_function.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       Role: !GetAtt FunctionRole.Arn
       Environment:
         Variables:
