@@ -107,14 +107,12 @@ def sync_to_synapse(bucket,event,eventname,filename,key):
     env_dict = json.loads(envvars)
     project_id = env_dict[bucket]['SynapseProjectId']
 
-    ssm_user = '/HTAN/SynapseSync/username'
-    ssm_api = '/HTAN/SynapseSync/apiKey'
-    username = ssm.get_parameter(Name=ssm_user, WithDecryption=True)['Parameter']['Value']
-    apiKey = ssm.get_parameter(Name=ssm_api, WithDecryption=True)['Parameter']['Value']
+    ssm_pat = '/HTAN/SynapseSync/PAT'
+    pat = ssm.get_parameter(Name=ssm_pat, WithDecryption=True)['Parameter']['Value']
 
     synapseclient.core.cache.CACHE_ROOT_DIR = '/tmp/.synapseCache'
     syn = synapseclient.Synapse()
-    syn.login(email=username,apiKey=apiKey)
+    syn.login(authToken=pat)
 
     if key[0].isdigit() == False:
         if 'ObjectCreated' in eventname:
