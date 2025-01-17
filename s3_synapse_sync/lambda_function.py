@@ -1,4 +1,3 @@
-
 """
 Copyright 2020, Institute for Systems Biology
 
@@ -223,4 +222,3 @@ def _get_env_var(name):
         raise ValueError(('Lambda configuration error: '
             f'missing environment variable {name}'))
     return value
-
