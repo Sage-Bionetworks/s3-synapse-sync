@@ -82,6 +82,25 @@ Parameters:
     Default: 365000
     MaxValue: 365000
     MinValue: 360
+  InventoryFormat:
+    Type: String
+    Description: S3 Inventory output format
+    AllowedValues:
+      - CSV
+      - ORC
+      - Parquet
+    Default: Parquet
+  InventoryPrefix:
+    Type: String
+    Description: Prefix for S3 Inventory output files
+    Default: inventory/
+  InventorySchedule:
+    Type: String
+    Description: S3 Inventory schedule
+    AllowedValues:
+      - Daily
+      - Weekly
+    Default: Weekly
 Resources:
   S3Bucket:
     Type: "AWS::S3::Bucket"
@@ -115,12 +134,12 @@ Resources:
         - Id: AllInventory
           Enabled: true
           IncludedObjectVersions: All
-          ScheduleFrequency: Weekly
+          ScheduleFrequency: !Ref InventorySchedule
           Destination:
             BucketAccountId: !Sub '${AWS::AccountId}'
             BucketArn: !Join ["", [ "arn:aws:s3:::", !Ref BucketName] ]
-            Prefix: inventory/
-            Format: Parquet
+            Prefix: !Ref InventoryPrefix
+            Format: !Ref InventoryFormat
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
