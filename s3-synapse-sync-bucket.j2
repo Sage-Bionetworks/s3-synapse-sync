@@ -52,8 +52,7 @@ Parameters:
       arn:aws:iam::011223344556:user/jdoe,arn:aws:iam::544332211006:user/rjones)
   BucketName:
     Type: String
-    Description: (Optional) Name of the created bucket.
-    Default: ""
+    Description: Name of the created bucket.
   EnableDataLifeCycle:
     Type: String
     Description: Enabled to enable bucket lifecycle rule, default is Disabled
@@ -83,13 +82,30 @@ Parameters:
     Default: 365000
     MaxValue: 365000
     MinValue: 360
-Conditions:
-  HasBucketName: !Not [!Equals [!Ref BucketName, ""]]
+  InventoryFormat:
+    Type: String
+    Description: S3 Inventory output format
+    AllowedValues:
+      - CSV
+      - ORC
+      - Parquet
+    Default: Parquet
+  InventoryPrefix:
+    Type: String
+    Description: Prefix for S3 Inventory output files
+    Default: inventory/
+  InventorySchedule:
+    Type: String
+    Description: S3 Inventory schedule
+    AllowedValues:
+      - Daily
+      - Weekly
+    Default: Weekly
 Resources:
   S3Bucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !If [HasBucketName, !Ref BucketName, !Ref 'AWS::NoValue']
+      BucketName: !Ref BucketName
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -114,6 +130,16 @@ Resources:
           Transitions:
             - TransitionInDays: !Ref LifecycleDataTransition
               StorageClass: !Ref LifecycleDataStorageClass
+      InventoryConfigurations:
+        - Id: AllInventory
+          Enabled: true
+          IncludedObjectVersions: All
+          ScheduleFrequency: !Ref InventorySchedule
+          Destination:
+            BucketAccountId: !Sub '${AWS::AccountId}'
+            BucketArn: !Join ["", [ "arn:aws:s3:::", !Ref BucketName] ]
+            Prefix: !Ref InventoryPrefix
+            Format: !Ref InventoryFormat
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
@@ -202,7 +228,20 @@ Resources:
             Action:
               - s3:*
             Resource: !GetAtt S3Bucket.Arn
-
+          -
+            Sid: "S3InventoryAccess"
+            Effect: "Allow"
+            Principal:
+              Service: s3.amazonaws.com
+            Action:
+              - s3:PutObject
+            Resource: !Sub "${S3Bucket.Arn}/inventory/*"
+            Condition:
+              ArnLike:
+                "aws:SourceArn": !GetAtt S3Bucket.Arn
+              StringEquals:
+                "aws:SourceAccount": !Ref "AWS::AccountId"
+                "s3:x-amz-acl": "bucket-owner-full-control"
 
   # Add owner file to the synapse bucket, requires the cloudformation S3 objects macro
   # https://github.com/Sage-Bionetworks-IT/cfn-s3objects-macro
