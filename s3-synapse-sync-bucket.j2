@@ -238,7 +238,7 @@ Resources:
             Resource: !Sub "${S3Bucket.Arn}/inventory/*"
             Condition:
               ArnLike:
-                "aws:SourceArn": !Sub "${S3Bucket.Arn}/inventory/*"
+                "aws:SourceArn": !GetAtt S3Bucket.Arn
               StringEquals:
                 "aws:SourceAccount": !Ref "AWS::AccountId"
                 "s3:x-amz-acl": "bucket-owner-full-control"
