@@ -90,10 +90,6 @@ Parameters:
       - ORC
       - Parquet
     Default: Parquet
-  InventoryPrefix:
-    Type: String
-    Description: Prefix for S3 Inventory output files
-    Default: inventory/
   InventorySchedule:
     Type: String
     Description: S3 Inventory schedule
@@ -101,7 +97,25 @@ Parameters:
       - Daily
       - Weekly
     Default: Weekly
+
 Resources:
+  S3InventoryBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${BucketName}-inventory"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
   S3Bucket:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -137,8 +151,7 @@ Resources:
           ScheduleFrequency: !Ref InventorySchedule
           Destination:
             BucketAccountId: !Sub '${AWS::AccountId}'
-            BucketArn: !Join ["", [ "arn:aws:s3:::", !Ref BucketName] ]
-            Prefix: !Ref InventoryPrefix
+            BucketArn: !GetAtt S3InventoryBucket.Arn
             Format: !Ref InventoryFormat
       OwnershipControls:
         Rules:
@@ -228,20 +241,45 @@ Resources:
             Action:
               - s3:*
             Resource: !GetAtt S3Bucket.Arn
-          -
+
+  S3InventoryBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3InventoryBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -  # Copied from https://docs.aws.amazon.com/AmazonS3/latest/userguide/configure-inventory.html#configure-inventory-destination-bucket-policy
             Sid: "S3InventoryAccess"
             Effect: "Allow"
             Principal:
               Service: s3.amazonaws.com
             Action:
               - s3:PutObject
-            Resource: !Sub "${S3Bucket.Arn}/inventory/*"
+            Resource: !Sub "${S3InventoryBucket.Arn}/*"
             Condition:
               ArnLike:
                 "aws:SourceArn": !GetAtt S3Bucket.Arn
               StringEquals:
                 "aws:SourceAccount": !Ref "AWS::AccountId"
                 "s3:x-amz-acl": "bucket-owner-full-control"
+          -
+            Sid: "AdminBucketObjectAccess"
+            Effect: Allow
+            Principal:
+              AWS: !Ref S3AdminARNs
+            Action:
+              - s3:*
+            Resource: !Sub "${S3InventoryBucket.Arn}/*"
+          -
+            Sid: "AdminBucketAccess"
+            Effect: "Allow"
+            Principal:
+              AWS: !Ref S3AdminARNs
+            Action:
+              - s3:*
+            Resource: !GetAtt S3InventoryBucket.Arn
+
 
   # Add owner file to the synapse bucket, requires the cloudformation S3 objects macro
   # https://github.com/Sage-Bionetworks-IT/cfn-s3objects-macro
@@ -272,3 +310,6 @@ Outputs:
   BucketUrl:
     Description: 'View the S3 Bucket in the AWS Console'
     Value: !Sub 'https://console.aws.amazon.com/s3/home?region=${AWS::Region}&bucket=${S3Bucket}'
+  InventoryBucketARN:
+    Description: 'The ARN of the S3 Inventory Bucket'
+    Value: !GetAtt 'S3InventoryBucket.Arn'
