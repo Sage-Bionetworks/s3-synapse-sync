@@ -22,7 +22,7 @@ jobs:
       BOOTSTRAP_BUCKET: bootstrap-awss3cloudformationbucket-19qromfd235z9
       ESSENTIALS_BUCKET: essentials-awss3lambdaartifactsbucket-x29ftznj6pqw
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       # Install sam-cli and run "sam build"
       - uses: ./.github/actions/sam-build

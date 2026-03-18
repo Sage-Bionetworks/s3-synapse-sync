@@ -9,7 +9,6 @@ pre-commit = "~=4.5"
 
 [packages]
 synapseclient = "~=4.11"
-pyyaml = "~=6.0"
 
 [requires]
 python_version = "3.13"
