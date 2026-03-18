@@ -5,11 +5,11 @@ verify_ssl = true
 
 [dev-packages]
 boto3 = "~=1.17"
+pre-commit = "~=4.5"
 
 [packages]
-synapseclient = ">=2.1,<3"
-# pyyaml = ">=5.4,<6"
+synapseclient = "~=4.11"
 pyyaml = "~=6.0"
 
 [requires]
-python_version = "3.9"
+python_version = "3.13"
