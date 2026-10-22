@@ -16,18 +16,17 @@ jobs:
           python-version: 3.13
       - uses: pre-commit/action@v3.0.0
 
-# This project doesn't have any tests
-#  pytest:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: 3.13
-#      - run: pip install -U pipenv
-#      - run: pipenv install --dev
-#      - run: pipenv run python3 -m pytest tests/ -vv
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.13
+      - run: pip install -U pipenv
+      - run: pipenv install --dev
+      - run: pipenv run python -m pytest tests/ -vvs
 
   sam-build-and-lint:
     runs-on: ubuntu-latest
