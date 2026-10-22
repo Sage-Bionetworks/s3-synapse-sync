@@ -4,11 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-boto3 = "~=1.17"
-pre-commit = "~=4.5"
+aws-sam-cli = "~=1.169"
+boto3 = "~=1.43"
+coverage = "~=7.16"
+pre-commit = "~=4.7"
+pytest = "~=9.1"
+pytest-mock = "~=3.17"
 
 [packages]
-synapseclient = "~=4.11"
+synapseclient = "~=4.14"
 
 [requires]
 python_version = "3.13"
