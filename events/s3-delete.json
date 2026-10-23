@@ -1,0 +1,24 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2024-01-15T12:00:00.000Z",
+      "eventName": "ObjectRemoved:Delete",
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "tf-s3-lambda-12345",
+        "bucket": {
+          "name": "example-bucket",
+          "arn": "arn:aws:s3:::example-bucket"
+        },
+        "object": {
+          "key": "minerva/deleted-file.txt",
+          "size": 1024,
+          "eTag": "d41d8cd98f00b204e9800998ecf8427e"
+        }
+      }
+    }
+  ]
+}

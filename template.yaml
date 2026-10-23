@@ -196,7 +196,7 @@ Resources:
       ContainerProperties:
         Memory: 4096
         Privileged: false
-        JobRoleArn: !Ref JobRole
+        JobRoleArn: !GetAtt JobRole.Arn
         ReadonlyRootFilesystem: false
         Vcpus: 1
         Image: !Ref DockerImage
